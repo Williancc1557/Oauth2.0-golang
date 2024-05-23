@@ -8,7 +8,7 @@ import (
 func Server() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	config.SetupRouters(mux)
+	config.SetupRoutes(mux)
 
 	return mux
 }
