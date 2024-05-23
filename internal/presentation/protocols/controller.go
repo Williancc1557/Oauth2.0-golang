@@ -1,5 +1,5 @@
 package protocols
 
 type Controller interface {
-	Handle(HttpRequest) (HttpResponse, error)
+	Handle(HttpRequest) (*HttpResponse, error)
 }

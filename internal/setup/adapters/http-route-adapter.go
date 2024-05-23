@@ -24,6 +24,7 @@ func (a *AdaptRouteDependencies) AdaptRoute() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		json.NewEncoder(w).Encode(res)
+		w.WriteHeader(res.StatusCode)
+		json.NewEncoder(w).Encode(res.Body)
 	}
 }

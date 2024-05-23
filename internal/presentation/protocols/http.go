@@ -1,11 +1,16 @@
 package protocols
 
+import (
+	"io"
+	"net/http"
+)
+
 type HttpRequest struct {
-	Body   any
-	Header any
+	Body   io.ReadCloser
+	Header http.Header
 }
 
 type HttpResponse struct {
 	Body       any
-	StatusCode any
+	StatusCode int
 }
