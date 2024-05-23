@@ -1,7 +1,7 @@
 package setup
 
 import (
-	"example/internal/config"
+	"example/internal/setup/config"
 	"net/http"
 )
 
