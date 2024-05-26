@@ -5,6 +5,7 @@ import (
 	dataProtocols "example/internal/data/protocols"
 	"example/internal/domain/usecase"
 	presentationProtocols "example/internal/presentation/protocols"
+	"example/internal/utils"
 	"net/http"
 )
 
@@ -23,27 +24,27 @@ type SignInControllerResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-func (c *SignInController) Handle(r presentationProtocols.HttpRequest) (*presentationProtocols.HttpResponse, error) {
+func (c *SignInController) Handle(r presentationProtocols.HttpRequest) (*presentationProtocols.HttpResponse, *presentationProtocols.ErrorResponse) {
 	var body SignInControllerBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		return nil, err
+		return nil, utils.HandleError("invalid body request", http.StatusBadRequest)
 	}
 
 	account, err := c.GetAccountByEmail.Get(body.Email)
 	if err != nil {
-		return nil, err
+		return nil, utils.HandleError("invalid credentials", http.StatusBadRequest)
 	}
 
 	isCorrectPassword := c.Encrypter.Compare(body.Password, account.Password)
 	if !isCorrectPassword {
-		return nil, nil // mudar esses erros
+		return nil, utils.HandleError("invalid credentials", http.StatusBadRequest)
 	}
 
 	newRefreshToken, err := c.ResetRefreshToken.Reset(account.Id)
 	if err != nil {
-		return nil, err
+		return nil, utils.HandleError("an error ocurred while resetting refresh token", http.StatusBadRequest)
 	}
 
 	return &presentationProtocols.HttpResponse{
