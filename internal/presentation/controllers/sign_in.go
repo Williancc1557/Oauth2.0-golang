@@ -49,15 +49,18 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) (*present
 		return nil, utils.HandleError("an error ocurred while resetting refresh token", http.StatusBadRequest)
 	}
 
-	refreshTokenResponse, err := json.Marshal(&SignInControllerResponse{
+	response := &SignInControllerResponse{
 		RefreshToken: newRefreshToken,
-	})
+	}
+
+	var responseBody bytes.Buffer
+	err = json.NewEncoder(&responseBody).Encode(response)
 	if err != nil {
-		return nil, utils.HandleError("an error ocurred while marshaling response", http.StatusBadRequest)
+		return nil, utils.HandleError("an error ocurred while encoding response", http.StatusBadRequest)
 	}
 
 	return &presentationProtocols.HttpResponse{
-		Body:       io.NopCloser(bytes.NewReader(refreshTokenResponse)),
+		Body:       io.NopCloser(&responseBody),
 		StatusCode: http.StatusOK,
 	}, nil
 }
