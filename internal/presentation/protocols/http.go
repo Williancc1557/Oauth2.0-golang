@@ -11,6 +11,6 @@ type HttpRequest struct {
 }
 
 type HttpResponse struct {
-	Body       any
+	Body       io.ReadCloser
 	StatusCode int
 }

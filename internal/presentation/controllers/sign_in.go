@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
 	dataProtocols "example/internal/data/protocols"
 	"example/internal/domain/usecase"
 	presentationProtocols "example/internal/presentation/protocols"
 	"example/internal/utils"
+	"io"
 	"net/http"
 )
 
@@ -47,10 +49,15 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) (*present
 		return nil, utils.HandleError("an error ocurred while resetting refresh token", http.StatusBadRequest)
 	}
 
+	refreshTokenResponse, err := json.Marshal(&SignInControllerResponse{
+		RefreshToken: newRefreshToken,
+	})
+	if err != nil {
+		return nil, utils.HandleError("an error ocurred while marshaling response", http.StatusBadRequest)
+	}
+
 	return &presentationProtocols.HttpResponse{
-		Body: &SignInControllerResponse{
-			RefreshToken: newRefreshToken,
-		},
+		Body:       io.NopCloser(bytes.NewReader(refreshTokenResponse)),
 		StatusCode: http.StatusOK,
 	}, nil
 }
