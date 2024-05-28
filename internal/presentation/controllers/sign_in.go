@@ -7,7 +7,6 @@ import (
 	"example/internal/domain/usecase"
 	presentationProtocols "example/internal/presentation/protocols"
 	"example/internal/utils"
-	"io"
 	"net/http"
 )
 
@@ -26,27 +25,35 @@ type SignInControllerResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-func (c *SignInController) Handle(r presentationProtocols.HttpRequest) (*presentationProtocols.HttpResponse, *presentationProtocols.ErrorResponse) {
+func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presentationProtocols.HttpResponse {
 	var body SignInControllerBody
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		return nil, utils.HandleError("invalid body request", http.StatusBadRequest)
+		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: "invalid body request",
+		}, http.StatusBadRequest)
 	}
 
 	account, err := c.GetAccountByEmail.Get(body.Email)
 	if err != nil {
-		return nil, utils.HandleError("invalid credentials", http.StatusBadRequest)
+		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: "invalid credentials",
+		}, http.StatusBadRequest)
 	}
 
 	isCorrectPassword := c.Encrypter.Compare(body.Password, account.Password)
 	if !isCorrectPassword {
-		return nil, utils.HandleError("invalid credentials", http.StatusBadRequest)
+		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: "invalid credentials",
+		}, http.StatusBadRequest)
 	}
 
 	newRefreshToken, err := c.ResetRefreshToken.Reset(account.Id)
 	if err != nil {
-		return nil, utils.HandleError("an error ocurred while resetting refresh token", http.StatusBadRequest)
+		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: "an error ocurred while resetting refresh token",
+		}, http.StatusBadRequest)
 	}
 
 	response := &SignInControllerResponse{
@@ -56,11 +63,10 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) (*present
 	var responseBody bytes.Buffer
 	err = json.NewEncoder(&responseBody).Encode(response)
 	if err != nil {
-		return nil, utils.HandleError("an error ocurred while encoding response", http.StatusBadRequest)
+		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: "an error ocurred while encoding response",
+		}, http.StatusBadRequest)
 	}
 
-	return &presentationProtocols.HttpResponse{
-		Body:       io.NopCloser(&responseBody),
-		StatusCode: http.StatusOK,
-	}, nil
+	return utils.CreateResponse(&responseBody, http.StatusAccepted)
 }
