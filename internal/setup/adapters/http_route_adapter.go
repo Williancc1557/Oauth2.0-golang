@@ -17,12 +17,7 @@ func (a *AdaptRouteDependencies) AdaptRoute() func(http.ResponseWriter, *http.Re
 			Header: r.Header,
 		}
 
-		res, err := a.Controller.Handle(*httpRequest)
-
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+		res := a.Controller.Handle(*httpRequest)
 
 		w.WriteHeader(res.StatusCode)
 		json.NewEncoder(w).Encode(res.Body)
