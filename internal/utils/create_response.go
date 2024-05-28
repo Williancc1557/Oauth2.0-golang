@@ -12,8 +12,11 @@ func CreateResponse(body any, statusCode int) *protocols.HttpResponse {
 	err := json.NewEncoder(&bodyBuffer).Encode(body)
 
 	if err != nil {
+		var errorBuffer bytes.Buffer
+		json.NewEncoder(&errorBuffer).Encode(err)
+
 		return &protocols.HttpResponse{
-			Body:       io.NopCloser(&bodyBuffer),
+			Body:       io.NopCloser(&errorBuffer),
 			StatusCode: 400,
 		}
 	}
