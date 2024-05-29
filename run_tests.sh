@@ -1,2 +1,2 @@
 #!/bin/sh
-go test ./test/..._test
+go test ./test/..._test -v

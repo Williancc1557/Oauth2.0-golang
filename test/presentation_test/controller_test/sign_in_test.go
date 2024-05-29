@@ -21,21 +21,12 @@ const (
 	refreshToken = "fake-refresh-token"
 )
 
-func TestSignInControllerSuccess(t *testing.T) {
+// setupMocks configura os mocks comuns a todos os testes
+func setupMocks(t *testing.T) (*controllers.SignInController, *mocks.MockEncrypter, *mocks.MockGetAccountByEmail, *mocks.MockResetRefreshToken, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
 	mockEncrypter := mocks.NewMockEncrypter(ctrl)
 	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
 	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
-
-	account := &models.AccountModel{
-		Id:           "fake-account-id",
-		Name:         "fake-account-name",
-		Email:        "fake-account-email",
-		Password:     "fake-account-password",
-		RefreshToken: "fake-account-refresh-token",
-	}
 
 	signInController := &controllers.SignInController{
 		GetAccountByEmail: mockGetAccountByEmail,
@@ -43,10 +34,10 @@ func TestSignInControllerSuccess(t *testing.T) {
 		ResetRefreshToken: mockResetRefreshToken,
 	}
 
-	mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
-	mockEncrypter.EXPECT().Compare(password, account.Password).Return(true)
-	mockResetRefreshToken.EXPECT().Reset(account.Id).Return(refreshToken, nil)
+	return signInController, mockEncrypter, mockGetAccountByEmail, mockResetRefreshToken, ctrl
+}
 
+func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequest {
 	requestBody, err := json.Marshal(&controllers.SignInControllerBody{
 		Email:    email,
 		Password: password,
@@ -55,187 +46,115 @@ func TestSignInControllerSuccess(t *testing.T) {
 		t.Fatalf("an error occurred while marshaling body: %v", err)
 	}
 
-	httpRequest := &protocols.HttpRequest{
+	return &protocols.HttpRequest{
 		Body:   io.NopCloser(bytes.NewReader(requestBody)),
 		Header: nil,
-	}
-
-	httpResponse := signInController.Handle(*httpRequest)
-
-	if httpResponse.StatusCode >= 400 && httpResponse.StatusCode <= 500 {
-		t.Errorf("unexpected status code: got %v want %v", httpResponse.StatusCode, http.StatusAccepted)
-	}
-
-	var responseBody controllers.SignInControllerResponse
-	err = json.NewDecoder(httpResponse.Body).Decode(&responseBody)
-
-	if err != nil {
-		t.Fatalf("an error occurred while decoding response body: %v", err)
-	}
-
-	t.Log(responseBody)
-
-	if responseBody.RefreshToken != refreshToken {
-		t.Errorf("unexpected refresh token: got %v want %v", responseBody.RefreshToken, refreshToken)
 	}
 }
 
-func TestSignInControllerInvalidEmailCredentials(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockEncrypter := mocks.NewMockEncrypter(ctrl)
-	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
-	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
-
-	signInController := &controllers.SignInController{
-		GetAccountByEmail: mockGetAccountByEmail,
-		Encrypter:         mockEncrypter,
-		ResetRefreshToken: mockResetRefreshToken,
-	}
-
-	mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
-
-	requestBody, err := json.Marshal(&controllers.SignInControllerBody{
-		Email:    email,
-		Password: password,
-	})
-	if err != nil {
-		t.Fatalf("an error occurred while marshaling body: %v", err)
-	}
-
-	httpRequest := &protocols.HttpRequest{
-		Body:   io.NopCloser(bytes.NewReader(requestBody)),
-		Header: nil,
-	}
-
-	httpResponse := signInController.Handle(*httpRequest)
-
-	if httpResponse.StatusCode == http.StatusOK {
-		t.Errorf("unexpected status code: got %d want %d", httpResponse.StatusCode, http.StatusOK)
+func verifyHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expectedStatusCode int, expectedError string) {
+	if httpResponse.StatusCode != expectedStatusCode {
+		t.Errorf("unexpected status code: got %d want %d", httpResponse.StatusCode, expectedStatusCode)
 	}
 
 	var responseBody protocols.ErrorResponse
-	err = json.NewDecoder(httpResponse.Body).Decode(&responseBody)
-
+	err := json.NewDecoder(httpResponse.Body).Decode(&responseBody)
 	if err != nil {
 		t.Fatalf("an error occurred while decoding response body: %v", err)
 	}
 
-	if responseBody.Error != "invalid credentials" {
-		t.Fatalf("unexpected error: got %v want %v", responseBody.Error, "invalid credentials")
+	if responseBody.Error != expectedError {
+		t.Fatalf("unexpected error: got '%v' want '%v'", responseBody.Error, expectedError)
 	}
 }
 
-func TestSignInControllerInvalidPasswordCredentials(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestSignInController(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		signInController, mockEncrypter, mockGetAccountByEmail, mockResetRefreshToken, ctrl := setupMocks(t)
+		defer ctrl.Finish()
 
-	mockEncrypter := mocks.NewMockEncrypter(ctrl)
-	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
-	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
+		account := &models.AccountModel{
+			Id:           "fake-account-id",
+			Name:         "fake-account-name",
+			Email:        "fake-account-email",
+			Password:     "fake-account-password",
+			RefreshToken: "fake-account-refresh-token",
+		}
 
-	account := &models.AccountModel{
-		Id:           "fake-account-id",
-		Name:         "fake-account-name",
-		Email:        "fake-account-email",
-		Password:     "fake-account-password",
-		RefreshToken: "fake-account-refresh-token",
-	}
+		mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
+		mockEncrypter.EXPECT().Compare(password, account.Password).Return(true)
+		mockResetRefreshToken.EXPECT().Reset(account.Id).Return(refreshToken, nil)
 
-	signInController := &controllers.SignInController{
-		GetAccountByEmail: mockGetAccountByEmail,
-		Encrypter:         mockEncrypter,
-		ResetRefreshToken: mockResetRefreshToken,
-	}
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signInController.Handle(*httpRequest)
 
-	mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
-	mockEncrypter.EXPECT().Compare(password, account.Password).Return(false)
+		if httpResponse.StatusCode != http.StatusOK {
+			t.Errorf("unexpected status code: got %v want %v", httpResponse.StatusCode, http.StatusOK)
+		}
 
-	requestBody, err := json.Marshal(&controllers.SignInControllerBody{
-		Email:    email,
-		Password: password,
+		var responseBody controllers.SignInControllerResponse
+		err := json.NewDecoder(httpResponse.Body).Decode(&responseBody)
+		if err != nil {
+			t.Fatalf("an error occurred while decoding response body: %v", err)
+		}
+
+		if responseBody.RefreshToken != refreshToken {
+			t.Errorf("unexpected refresh token: got %v want %v", responseBody.RefreshToken, refreshToken)
+		}
 	})
-	if err != nil {
-		t.Fatalf("an error occurred while marshaling body: %v", err)
-	}
 
-	httpRequest := &protocols.HttpRequest{
-		Body:   io.NopCloser(bytes.NewReader(requestBody)),
-		Header: nil,
-	}
+	t.Run("InvalidEmailCredentials", func(t *testing.T) {
+		signInController, _, mockGetAccountByEmail, _, ctrl := setupMocks(t)
+		defer ctrl.Finish()
 
-	httpResponse := signInController.Handle(*httpRequest)
+		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
 
-	if httpResponse.StatusCode == http.StatusOK {
-		t.Errorf("unexpected status code: got %d want %d", httpResponse.StatusCode, http.StatusOK)
-	}
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signInController.Handle(*httpRequest)
 
-	var responseBody protocols.ErrorResponse
-	err = json.NewDecoder(httpResponse.Body).Decode(&responseBody)
-
-	if err != nil {
-		t.Fatalf("an error occurred while decoding response body: %v", err)
-	}
-
-	if responseBody.Error != "invalid credentials" {
-		t.Fatalf("unexpected error: got %v want %v", responseBody.Error, "invalid credentials")
-	}
-}
-
-func TestSignInControllerResettingRefreshTokenError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockEncrypter := mocks.NewMockEncrypter(ctrl)
-	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
-	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
-
-	account := &models.AccountModel{
-		Id:           "fake-account-id",
-		Name:         "fake-account-name",
-		Email:        "fake-account-email",
-		Password:     "fake-account-password",
-		RefreshToken: "fake-account-refresh-token",
-	}
-
-	signInController := &controllers.SignInController{
-		GetAccountByEmail: mockGetAccountByEmail,
-		Encrypter:         mockEncrypter,
-		ResetRefreshToken: mockResetRefreshToken,
-	}
-
-	mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
-	mockEncrypter.EXPECT().Compare(password, account.Password).Return(true)
-	mockResetRefreshToken.EXPECT().Reset(account.Id).Return("", errors.New("fake-error"))
-
-	requestBody, err := json.Marshal(&controllers.SignInControllerBody{
-		Email:    email,
-		Password: password,
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid credentials")
 	})
-	if err != nil {
-		t.Fatalf("an error occurred while marshaling body: %v", err)
-	}
 
-	httpRequest := &protocols.HttpRequest{
-		Body:   io.NopCloser(bytes.NewReader(requestBody)),
-		Header: nil,
-	}
+	t.Run("InvalidPasswordCredentials", func(t *testing.T) {
+		signInController, mockEncrypter, mockGetAccountByEmail, _, ctrl := setupMocks(t)
+		defer ctrl.Finish()
 
-	httpResponse := signInController.Handle(*httpRequest)
+		account := &models.AccountModel{
+			Id:           "fake-account-id",
+			Name:         "fake-account-name",
+			Email:        "fake-account-email",
+			Password:     "fake-account-password",
+			RefreshToken: "fake-account-refresh-token",
+		}
 
-	if httpResponse.StatusCode == http.StatusOK {
-		t.Errorf("unexpected status code: got %d want %d", httpResponse.StatusCode, http.StatusOK)
-	}
+		mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
+		mockEncrypter.EXPECT().Compare(password, account.Password).Return(false)
 
-	var responseBody protocols.ErrorResponse
-	err = json.NewDecoder(httpResponse.Body).Decode(&responseBody)
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signInController.Handle(*httpRequest)
 
-	if err != nil {
-		t.Fatalf("an error occurred while decoding response body: %v", err)
-	}
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid credentials")
+	})
 
-	if responseBody.Error != "an error ocurred while resetting refresh token" {
-		t.Fatalf("unexpected error: got '%v' want '%v'", responseBody.Error, "an error ocurred while resetting refresh token")
-	}
+	t.Run("ResettingRefreshTokenError", func(t *testing.T) {
+		signInController, mockEncrypter, mockGetAccountByEmail, mockResetRefreshToken, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		account := &models.AccountModel{
+			Id:           "fake-account-id",
+			Name:         "fake-account-name",
+			Email:        "fake-account-email",
+			Password:     "fake-account-password",
+			RefreshToken: "fake-account-refresh-token",
+		}
+
+		mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
+		mockEncrypter.EXPECT().Compare(password, account.Password).Return(true)
+		mockResetRefreshToken.EXPECT().Reset(account.Id).Return("", errors.New("fake-error"))
+
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signInController.Handle(*httpRequest)
+
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "an error ocurred while resetting refresh token")
+	})
 }
