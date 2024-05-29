@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"bytes"
 	"encoding/json"
 	dataProtocols "example/internal/data/protocols"
 	"example/internal/domain/usecase"
@@ -60,13 +59,5 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presenta
 		RefreshToken: newRefreshToken,
 	}
 
-	var responseBody bytes.Buffer
-	err = json.NewEncoder(&responseBody).Encode(response)
-	if err != nil {
-		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
-			Error: "an error ocurred while encoding response",
-		}, http.StatusBadRequest)
-	}
-
-	return utils.CreateResponse(&responseBody, http.StatusAccepted)
+	return utils.CreateResponse(response, http.StatusOK)
 }
