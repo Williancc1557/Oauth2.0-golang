@@ -126,3 +126,59 @@ func TestSignInControllerInvalidEmailCredentials(t *testing.T) {
 		t.Fatalf("unexpected error: got %v want %v", responseBody.Error, "invalid credentials")
 	}
 }
+
+func TestSignInControllerInvalidPasswordCredentials(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockEncrypter := mocks.NewMockEncrypter(ctrl)
+	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
+	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
+
+	account := &models.AccountModel{
+		Id:           "fake-account-id",
+		Name:         "fake-account-name",
+		Email:        "fake-account-email",
+		Password:     "fake-account-password",
+		RefreshToken: "fake-account-refresh-token",
+	}
+
+	signInController := &controllers.SignInController{
+		GetAccountByEmail: mockGetAccountByEmail,
+		Encrypter:         mockEncrypter,
+		ResetRefreshToken: mockResetRefreshToken,
+	}
+
+	mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
+	mockEncrypter.EXPECT().Compare(password, account.Password).Return(false)
+
+	requestBody, err := json.Marshal(&controllers.SignInControllerBody{
+		Email:    email,
+		Password: password,
+	})
+	if err != nil {
+		t.Fatalf("an error occurred while marshaling body: %v", err)
+	}
+
+	httpRequest := &protocols.HttpRequest{
+		Body:   io.NopCloser(bytes.NewReader(requestBody)),
+		Header: nil,
+	}
+
+	httpResponse := signInController.Handle(*httpRequest)
+
+	if httpResponse.StatusCode == http.StatusOK {
+		t.Errorf("unexpected status code: got %d want %d", httpResponse.StatusCode, http.StatusOK)
+	}
+
+	var responseBody protocols.ErrorResponse
+	err = json.NewDecoder(httpResponse.Body).Decode(&responseBody)
+
+	if err != nil {
+		t.Fatalf("an error occurred while decoding response body: %v", err)
+	}
+
+	if responseBody.Error != "invalid credentials" {
+		t.Fatalf("unexpected error: got %v want %v", responseBody.Error, "invalid credentials")
+	}
+}
