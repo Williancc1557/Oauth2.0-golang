@@ -21,7 +21,6 @@ const (
 	refreshToken = "fake-refresh-token"
 )
 
-// setupMocks configura os mocks comuns a todos os testes
 func setupMocks(t *testing.T) (*controllers.SignInController, *mocks.MockEncrypter, *mocks.MockGetAccountByEmail, *mocks.MockResetRefreshToken, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockEncrypter := mocks.NewMockEncrypter(ctrl)
