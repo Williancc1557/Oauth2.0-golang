@@ -39,16 +39,17 @@ func setupMocks(t *testing.T) (*controllers.SignInController, *mocks.MockEncrypt
 }
 
 func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequest {
-	requestBody, err := json.Marshal(&controllers.SignInControllerBody{
+	var requestBody bytes.Buffer
+	err := json.NewEncoder(&requestBody).Encode(&controllers.SignInControllerBody{
 		Email:    email,
 		Password: password,
 	})
 	if err != nil {
-		t.Fatalf("an error occurred while marshaling body: %v", err)
+		t.Fatalf("an error occurred while encoding body: %v", err)
 	}
 
 	return &protocols.HttpRequest{
-		Body:   io.NopCloser(bytes.NewReader(requestBody)),
+		Body:   io.NopCloser(&requestBody),
 		Header: nil,
 	}
 }
