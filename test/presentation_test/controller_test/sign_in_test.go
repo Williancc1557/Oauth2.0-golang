@@ -10,6 +10,7 @@ import (
 	"example/test/mocks"
 	"io"
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -77,7 +78,7 @@ func TestSignInController(t *testing.T) {
 			Name:         "fake-account-name",
 			Email:        "fake-account-email",
 			Password:     "fake-account-password",
-			RefreshToken: "fake-account-refresh-token",
+			RefreshToken: refreshToken,
 		}
 
 		mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
@@ -97,7 +98,10 @@ func TestSignInController(t *testing.T) {
 			t.Fatalf("an error occurred while decoding response body: %v", err)
 		}
 
-		if responseBody.RefreshToken != refreshToken {
+		correctSignInControllerResponse := &controllers.SignInControllerResponse{
+			RefreshToken: refreshToken,
+		}
+		if !reflect.DeepEqual(&responseBody, correctSignInControllerResponse) {
 			t.Errorf("unexpected refresh token: got %v want %v", responseBody.RefreshToken, refreshToken)
 		}
 	})
@@ -123,7 +127,7 @@ func TestSignInController(t *testing.T) {
 			Name:         "fake-account-name",
 			Email:        "fake-account-email",
 			Password:     "fake-account-password",
-			RefreshToken: "fake-account-refresh-token",
+			RefreshToken: refreshToken,
 		}
 
 		mockGetAccountByEmail.EXPECT().Get(email).Return(account, nil)
