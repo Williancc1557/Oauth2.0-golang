@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	dataProtocols "example/internal/data/protocols"
-	"example/internal/domain/usecase"
-	presentationProtocols "example/internal/presentation/protocols"
-	"example/internal/utils"
 	"net/http"
+
+	dataProtocols "github.com/Williancc1557/Oauth2.0-golang/internal/data/protocols"
+	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/usecase"
+	presentationProtocols "github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
+	"github.com/Williancc1557/Oauth2.0-golang/internal/utils"
 )
 
 type SignInController struct {

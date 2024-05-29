@@ -1,9 +1,10 @@
 package main
 
 import (
-	"example/internal/setup"
 	"fmt"
 	"net/http"
+
+	"github.com/Williancc1557/Oauth2.0-golang/internal/setup"
 )
 
 func main() {

@@ -2,8 +2,9 @@ package adapters
 
 import (
 	"encoding/json"
-	"example/internal/presentation/protocols"
 	"net/http"
+
+	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
 )
 
 type AdaptRouteDependencies struct {

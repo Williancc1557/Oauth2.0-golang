@@ -1,8 +1,9 @@
 package setup
 
 import (
-	"example/internal/setup/config"
 	"net/http"
+
+	"github.com/Williancc1557/Oauth2.0-golang/internal/setup/config"
 )
 
 func Server() *http.ServeMux {

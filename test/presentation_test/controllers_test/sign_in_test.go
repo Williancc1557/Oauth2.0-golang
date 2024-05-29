@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"example/internal/domain/models"
-	"example/internal/presentation/controllers"
-	"example/internal/presentation/protocols"
-	"example/test/mocks"
 	"io"
 	"net/http"
 	"reflect"
 	"testing"
+
+	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/models"
+	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/controllers"
+	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
+	"github.com/Williancc1557/Oauth2.0-golang/test/mocks"
 
 	"github.com/golang/mock/gomock"
 )

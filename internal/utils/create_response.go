@@ -3,8 +3,9 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"example/internal/presentation/protocols"
 	"io"
+
+	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
 )
 
 func CreateResponse(body any, statusCode int) *protocols.HttpResponse {

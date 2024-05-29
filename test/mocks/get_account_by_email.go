@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	models "example/internal/domain/models"
+	models "github.com/Williancc1557/Oauth2.0-golang/internal/domain/models"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
