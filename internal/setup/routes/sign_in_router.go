@@ -9,8 +9,5 @@ import (
 
 func SignInRouter(server *http.ServeMux) {
 	signInController := &controllers.SignInController{}
-	a := adapters.AdaptRouteDependencies{
-		Controller: signInController,
-	}
-	server.HandleFunc("POST /", a.AdaptRoute())
+	server.HandleFunc("POST /", adapters.AdaptRoute(signInController))
 }
