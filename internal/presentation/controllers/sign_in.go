@@ -6,8 +6,8 @@ import (
 
 	dataProtocols "github.com/Williancc1557/Oauth2.0-golang/internal/data/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/usecase"
+	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/helpers"
 	presentationProtocols "github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
-	"github.com/Williancc1557/Oauth2.0-golang/internal/utils"
 )
 
 type SignInController struct {
@@ -30,28 +30,28 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presenta
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "invalid body request",
 		}, http.StatusBadRequest)
 	}
 
 	account, err := c.GetAccountByEmail.Get(body.Email)
 	if err != nil {
-		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "invalid credentials",
 		}, http.StatusBadRequest)
 	}
 
 	isCorrectPassword := c.Encrypter.Compare(body.Password, account.Password)
 	if !isCorrectPassword {
-		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "invalid credentials",
 		}, http.StatusBadRequest)
 	}
 
 	newRefreshToken, err := c.ResetRefreshToken.Reset(account.Id)
 	if err != nil {
-		return utils.CreateResponse(&presentationProtocols.ErrorResponse{
+		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "an error ocurred while resetting refresh token",
 		}, http.StatusBadRequest)
 	}
@@ -60,5 +60,5 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presenta
 		RefreshToken: newRefreshToken,
 	}
 
-	return utils.CreateResponse(response, http.StatusOK)
+	return helpers.CreateResponse(response, http.StatusOK)
 }
