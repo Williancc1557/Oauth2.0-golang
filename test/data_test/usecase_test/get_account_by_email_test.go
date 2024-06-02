@@ -31,7 +31,6 @@ func TestDbGetAccountByEmail(t *testing.T) {
 
 		account := &models.AccountModel{
 			Id:           "fake-account-id",
-			Name:         "fake-account-name",
 			Email:        email,
 			Password:     "fake-account-password",
 			RefreshToken: "fake-account-refresh-token",

@@ -77,7 +77,6 @@ func TestSignInController(t *testing.T) {
 
 		account := &models.AccountModel{
 			Id:           "fake-account-id",
-			Name:         "fake-account-name",
 			Email:        "fake-account-email",
 			Password:     "fake-account-password",
 			RefreshToken: refreshToken,
@@ -126,7 +125,6 @@ func TestSignInController(t *testing.T) {
 
 		account := &models.AccountModel{
 			Id:           "fake-account-id",
-			Name:         "fake-account-name",
 			Email:        "fake-account-email",
 			Password:     "fake-account-password",
 			RefreshToken: refreshToken,
@@ -147,7 +145,6 @@ func TestSignInController(t *testing.T) {
 
 		account := &models.AccountModel{
 			Id:           "fake-account-id",
-			Name:         "fake-account-name",
 			Email:        "fake-account-email",
 			Password:     "fake-account-password",
 			RefreshToken: "fake-account-refresh-token",
