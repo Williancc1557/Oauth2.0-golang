@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -46,6 +47,25 @@ func TestDbGetAccountByEmail(t *testing.T) {
 
 		if !reflect.DeepEqual(dbResponse, account) {
 			t.Errorf("got %v, want %v", dbResponse, account)
+		}
+	})
+
+	t.Run("EmailRepositoryError", func(t *testing.T) {
+		dbGetAccountByEmail, mockGetAccountByEmailRepository, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		email := "fake-email@example.com"
+
+		mockGetAccountByEmailRepository.EXPECT().Get(email).Return(nil, errors.New("an error"))
+
+		dbResponse, err := dbGetAccountByEmail.Get(email)
+
+		if err == nil {
+			t.Fatalf("got %v, want %v", err, errors.New("an error"))
+		}
+
+		if dbResponse != nil {
+			t.Errorf("got %v, want %v", dbResponse, nil)
 		}
 	})
 }
