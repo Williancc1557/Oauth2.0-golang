@@ -44,9 +44,7 @@ func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequ
 		Email:    email,
 		Password: password,
 	})
-	if err != nil {
-		t.Fatalf("an error occurred while encoding body: %v", err)
-	}
+	require.NoError(t, err)
 
 	return &protocols.HttpRequest{
 		Body:   io.NopCloser(&requestBody),
