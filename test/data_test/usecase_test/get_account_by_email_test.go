@@ -2,13 +2,13 @@ package usecase_test
 
 import (
 	"errors"
-	"reflect"
 	"testing"
 
 	"github.com/Williancc1557/Oauth2.0-golang/internal/data/usecase"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/models"
 	"github.com/Williancc1557/Oauth2.0-golang/test/mocks"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func setupMocks(t *testing.T) (*usecase.DbGetAccountByEmail, *mocks.MockGetAccountByEmailRepository, *gomock.Controller) {
@@ -40,13 +40,9 @@ func TestDbGetAccountByEmail(t *testing.T) {
 
 		dbResponse, err := dbGetAccountByEmail.Get(email)
 
-		if err != nil {
-			t.Fatalf("an error ocurred while getting account: %v", err)
-		}
-
-		if !reflect.DeepEqual(dbResponse, account) {
-			t.Errorf("got %v, want %v", dbResponse, account)
-		}
+		require.NoErrorf(t, err, "an error ocurred while getting account: %v", err)
+		require.NotNil(t, dbResponse)
+		require.Equal(t, dbResponse, account)
 	})
 
 	t.Run("EmailRepositoryError", func(t *testing.T) {
@@ -59,12 +55,7 @@ func TestDbGetAccountByEmail(t *testing.T) {
 
 		dbResponse, err := dbGetAccountByEmail.Get(email)
 
-		if err == nil {
-			t.Fatalf("got %v, want %v", err, errors.New("an error"))
-		}
-
-		if dbResponse != nil {
-			t.Errorf("got %v, want %v", dbResponse, nil)
-		}
+		require.Errorf(t, err, "got %v, want %v", err, errors.New("an error"))
+		require.Nil(t, dbResponse, "got %v, want %v", dbResponse, nil)
 	})
 }
