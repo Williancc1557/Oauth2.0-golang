@@ -17,7 +17,7 @@ func (rep *PostgreGetAccountByEmailRepository) Get(email string) (*models.Accoun
 	err := rep.Db.QueryRow(query, email).Scan(&account.Id, &account.Email, &account.Password, &account.RefreshToken)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.New("no account found")
+		return nil, errors.New("user not found")
 	}
 
 	if err != nil {
