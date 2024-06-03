@@ -6,13 +6,13 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"reflect"
 	"testing"
 
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/models"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/controllers"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/test/mocks"
+	"github.com/stretchr/testify/require"
 
 	"github.com/golang/mock/gomock"
 )
@@ -55,19 +55,12 @@ func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequ
 }
 
 func verifyHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expectedStatusCode int, expectedError string) {
-	if httpResponse.StatusCode != expectedStatusCode {
-		t.Errorf("unexpected status code: got %d want %d", httpResponse.StatusCode, expectedStatusCode)
-	}
+	require.Equal(t, httpResponse.StatusCode, expectedStatusCode)
 
 	var responseBody protocols.ErrorResponse
 	err := json.NewDecoder(httpResponse.Body).Decode(&responseBody)
-	if err != nil {
-		t.Fatalf("an error occurred while decoding response body: %v", err)
-	}
-
-	if responseBody.Error != expectedError {
-		t.Fatalf("unexpected error: got '%v' want '%v'", responseBody.Error, expectedError)
-	}
+	require.NoError(t, err)
+	require.Equal(t, responseBody.Error, expectedError)
 }
 
 func TestSignInController(t *testing.T) {
@@ -89,22 +82,15 @@ func TestSignInController(t *testing.T) {
 		httpRequest := createHttpRequest(t, email, password)
 		httpResponse := signInController.Handle(*httpRequest)
 
-		if httpResponse.StatusCode != http.StatusOK {
-			t.Errorf("unexpected status code: got %v want %v", httpResponse.StatusCode, http.StatusOK)
-		}
-
+		require.Equal(t, httpResponse.StatusCode, http.StatusOK)
 		var responseBody controllers.SignInControllerResponse
 		err := json.NewDecoder(httpResponse.Body).Decode(&responseBody)
-		if err != nil {
-			t.Fatalf("an error occurred while decoding response body: %v", err)
-		}
+		require.NoError(t, err)
 
 		correctSignInControllerResponse := &controllers.SignInControllerResponse{
 			RefreshToken: refreshToken,
 		}
-		if !reflect.DeepEqual(&responseBody, correctSignInControllerResponse) {
-			t.Errorf("unexpected refresh token: got %v want %v", responseBody.RefreshToken, refreshToken)
-		}
+		require.Equal(t, &responseBody, correctSignInControllerResponse)
 	})
 
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
