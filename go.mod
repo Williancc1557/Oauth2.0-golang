@@ -5,6 +5,7 @@ go 1.22.3
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/golang/mock v1.6.0
+	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.24.0
 )
