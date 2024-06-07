@@ -2,6 +2,7 @@ package reset_refresh_token_repository_test
 
 import (
 	"database/sql"
+	"errors"
 	"regexp"
 	"testing"
 
@@ -34,5 +35,19 @@ func TestResetRefreshTokenPostgreRepository(t *testing.T) {
 		refreshToken, err := repo.Reset(userId)
 		require.NoError(t, err)
 		require.NotEmpty(t, refreshToken)
+	})
+
+	t.Run("ErrorWhenExecuteQuery", func(t *testing.T) {
+		repo, mock, db := setupMocks(t)
+		defer db.Close()
+
+		userId := "fake-user-id"
+		query := regexp.QuoteMeta("UPDATE users SET refresh_token = $1 WHERE id = $2")
+
+		mock.ExpectExec(query).WithArgs(sqlmock.AnyArg(), userId).WillReturnError(errors.New("fake-error"))
+
+		refreshToken, err := repo.Reset(userId)
+		require.Error(t, err)
+		require.Empty(t, refreshToken)
 	})
 }
