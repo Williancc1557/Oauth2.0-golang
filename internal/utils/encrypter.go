@@ -12,6 +12,8 @@ func (e *EncrypterUtil) Hash(value string) (string, error) {
 	return string(hashed), nil
 }
 
-func (e *EncrypterUtil) CompareHashAndPassword(hashedPassword, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+func (e *EncrypterUtil) Compare(value string, hashedValue string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedValue), []byte(value))
+
+	return err != nil
 }

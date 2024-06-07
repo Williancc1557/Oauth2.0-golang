@@ -15,7 +15,7 @@ func setupMocks() *utils.EncrypterUtil {
 }
 
 func TestEncrypterUtils(t *testing.T) {
-	t.Run("Success", func(t *testing.T) {
+	t.Run("HashSuccess", func(t *testing.T) {
 		encripter := setupMocks()
 
 		password := "123"
@@ -24,5 +24,16 @@ func TestEncrypterUtils(t *testing.T) {
 
 		err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 		require.NoError(t, err)
+	})
+
+	t.Run("CompareSuccess", func(t *testing.T) {
+		encripter := setupMocks()
+
+		password := "123"
+		hash, err := encripter.Hash(password)
+		require.NoError(t, err)
+
+		value := encripter.Compare(hash, password)
+		require.True(t, value)
 	})
 }
