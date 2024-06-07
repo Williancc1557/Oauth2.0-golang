@@ -13,7 +13,7 @@ type ResetRefreshTokenPostgreRepository struct {
 func (rep *ResetRefreshTokenPostgreRepository) Reset(userId string) (string, error) {
 	refreshToken := uuid.New().String()
 
-	_, err := rep.Db.Exec("UPDATE users SET refresh_token = %s WHERE id = %s", refreshToken, userId)
+	_, err := rep.Db.Exec("UPDATE users SET refresh_token = $1 WHERE id = $2", refreshToken, userId)
 	if err != nil {
 		return "", err
 	}
