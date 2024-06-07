@@ -10,18 +10,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupMocks(t *testing.T) (*users_repository.PostgreGetAccountByEmailRepository, sqlmock.Sqlmock, *sql.DB) {
+func setupMocks(t *testing.T) (*users_repository.GetAccountByEmailPostgreRepository, sqlmock.Sqlmock, *sql.DB) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 
-	getAccountByEmailRepository := &users_repository.PostgreGetAccountByEmailRepository{
+	getAccountByEmailRepository := &users_repository.GetAccountByEmailPostgreRepository{
 		Db: db,
 	}
 
 	return getAccountByEmailRepository, mock, db
 }
 
-func TestGetAccountByEmail(t *testing.T) {
+func TestGetAccountByEmailPostgreRepository(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		repo, mock, db := setupMocks(t)
 		defer db.Close()
