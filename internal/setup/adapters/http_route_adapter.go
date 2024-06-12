@@ -1,7 +1,6 @@
 package adapters
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 
@@ -24,8 +23,5 @@ func AdaptRoute(controller protocols.Controller) func(http.ResponseWriter, *http
 			http.Error(w, "Failed to write response body", http.StatusInternalServerError)
 			return
 		}
-
-		bodyBytes, _ := io.ReadAll(res.Body)
-		fmt.Println(string(bodyBytes))
 	}
 }

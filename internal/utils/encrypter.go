@@ -1,6 +1,8 @@
 package utils
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+)
 
 type EncrypterUtil struct{}
 
@@ -15,5 +17,5 @@ func (e *EncrypterUtil) Hash(value string) (string, error) {
 func (e *EncrypterUtil) Compare(value string, hashedValue string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedValue), []byte(value))
 
-	return err != nil
+	return err == nil
 }

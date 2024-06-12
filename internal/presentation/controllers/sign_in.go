@@ -43,11 +43,13 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presenta
 	}
 
 	isCorrectPassword := c.Encrypter.Compare(body.Password, account.Password)
+
 	if !isCorrectPassword {
 		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "invalid credentials",
 		}, http.StatusBadRequest)
 	}
+
 
 	newRefreshToken, err := c.ResetRefreshToken.Reset(account.Id)
 	if err != nil {
