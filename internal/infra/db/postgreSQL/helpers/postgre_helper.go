@@ -17,5 +17,10 @@ func PostgreHelper() *sql.DB {
 		fmt.Printf("Database Error: %v\n", err)
 	}
 
+	err = db.Ping()
+	if err != nil {
+		fmt.Print("failed to ping database: %w", err)
+	}
+
 	return db
 }
