@@ -1,6 +1,6 @@
 module github.com/Williancc1557/Oauth2.0-golang
 
-go 1.22.3
+go 1.22.4
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
