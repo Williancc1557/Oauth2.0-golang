@@ -33,7 +33,9 @@ func TestEncrypterUtils(t *testing.T) {
 		hash, err := encripter.Hash(password)
 		require.NoError(t, err)
 
-		value := encripter.Compare(hash, password)
+		value := encripter.Compare(password, hash)
+
+		t.Log("aaaaaaaaaaaaa", value)
 		require.True(t, value)
 	})
 }
