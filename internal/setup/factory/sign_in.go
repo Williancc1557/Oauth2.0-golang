@@ -1,6 +1,8 @@
 package factory
 
 import (
+	"database/sql"
+
 	"github.com/Williancc1557/Oauth2.0-golang/internal/data/usecase"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/infra/db/postgreSQL/reset_refresh_token_repository"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/infra/db/postgreSQL/users_repository"
@@ -8,17 +10,17 @@ import (
 	"github.com/Williancc1557/Oauth2.0-golang/internal/utils"
 )
 
-func MakeSignInController() *controllers.SignInController {
+func MakeSignInController(db *sql.DB) *controllers.SignInController {
 	encrypter := &utils.EncrypterUtil{}
 
 	getAccountByEmailRepository := &users_repository.GetAccountByEmailPostgreRepository{
-		// Db: ,
+		Db: db,
 	}
 	getAccountByEmail := &usecase.DbGetAccountByEmail{
 		GetAccountByEmailRepository: getAccountByEmailRepository,
 	}
 	resetRefreshToken := &reset_refresh_token_repository.ResetRefreshTokenPostgreRepository{
-		// Db: ,
+		Db: db,
 	}
 
 	return &controllers.SignInController{
