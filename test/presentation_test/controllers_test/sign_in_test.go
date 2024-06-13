@@ -13,6 +13,7 @@ import (
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/controllers"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/test/mocks"
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/require"
 
 	"github.com/golang/mock/gomock"
@@ -29,11 +30,13 @@ func setupMocks(t *testing.T) (*controllers.SignInController, *mocks.MockEncrypt
 	mockEncrypter := mocks.NewMockEncrypter(ctrl)
 	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
 	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	signInController := &controllers.SignInController{
 		GetAccountByEmail: mockGetAccountByEmail,
 		Encrypter:         mockEncrypter,
 		ResetRefreshToken: mockResetRefreshToken,
+		Validate:          validate,
 	}
 
 	return signInController, mockEncrypter, mockGetAccountByEmail, mockResetRefreshToken, ctrl
@@ -69,7 +72,7 @@ func TestSignInController(t *testing.T) {
 
 		account := &models.AccountModel{
 			Id:           "fake-account-id",
-			Email:        "fake-account-email",
+			Email:        "fake-account-email@example.com",
 			Password:     "fake-account-password",
 			RefreshToken: refreshToken,
 		}
@@ -111,7 +114,6 @@ func TestSignInController(t *testing.T) {
 		httpResponseMin := signInController.Handle(*httpMinPasswordRequest)
 		httpResponseMax := signInController.Handle(*httpMaxPasswordRequest)
 
-
 		verifyHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
 		verifyHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
 	})
@@ -134,7 +136,7 @@ func TestSignInController(t *testing.T) {
 
 		account := &models.AccountModel{
 			Id:           "fake-account-id",
-			Email:        "fake-account-email",
+			Email:        "fake-account-email@example.com",
 			Password:     "fake-account-password",
 			RefreshToken: refreshToken,
 		}
@@ -154,7 +156,7 @@ func TestSignInController(t *testing.T) {
 
 		account := &models.AccountModel{
 			Id:           "fake-account-id",
-			Email:        "fake-account-email",
+			Email:        "fake-account-email@example.com",
 			Password:     "fake-account-password",
 			RefreshToken: "fake-account-refresh-token",
 		}
