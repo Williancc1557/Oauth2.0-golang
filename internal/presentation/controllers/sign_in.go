@@ -8,6 +8,7 @@ import (
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/usecase"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/helpers"
 	presentationProtocols "github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
+	"github.com/go-playground/validator/v10"
 )
 
 type SignInController struct {
@@ -17,8 +18,8 @@ type SignInController struct {
 }
 
 type SignInControllerBody struct {
-	Email    string
-	Password string
+	Email    string `validate:"email"`
+	Password string `validate:"min=8,max=128"`
 }
 
 type SignInControllerResponse struct {
@@ -33,6 +34,15 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presenta
 		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "invalid body request",
 		}, http.StatusBadRequest)
+	}
+
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	err = validate.Struct(body)
+	if err != nil {
+		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: err.Error(),
+		}, http.StatusUnprocessableEntity)
 	}
 
 	account, err := c.GetAccountByEmail.Get(body.Email)
