@@ -15,6 +15,7 @@ type SignInController struct {
 	GetAccountByEmail usecase.GetAccountByEmail
 	Encrypter         dataProtocols.Encrypter
 	ResetRefreshToken usecase.ResetRefreshToken
+	Validate          *validator.Validate
 }
 
 type SignInControllerBody struct {
@@ -36,9 +37,7 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presenta
 		}, http.StatusBadRequest)
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err = validate.Struct(body)
+	err = c.Validate.Struct(body)
 	if err != nil {
 		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: err.Error(),
@@ -53,13 +52,11 @@ func (c *SignInController) Handle(r presentationProtocols.HttpRequest) *presenta
 	}
 
 	isCorrectPassword := c.Encrypter.Compare(body.Password, account.Password)
-
 	if !isCorrectPassword {
 		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "invalid credentials",
 		}, http.StatusBadRequest)
 	}
-
 
 	newRefreshToken, err := c.ResetRefreshToken.Reset(account.Id)
 	if err != nil {
