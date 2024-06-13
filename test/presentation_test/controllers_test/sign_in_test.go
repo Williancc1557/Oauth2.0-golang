@@ -91,6 +91,16 @@ func TestSignInController(t *testing.T) {
 		require.Equal(t, &responseBody, correctSignInControllerResponse)
 	})
 
+	t.Run("InvalidValidationEmailError", func(t *testing.T) {
+		signInController, _, _, _, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		httpRequest := createHttpRequest(t, "invalid_email", password)
+		httpResponse := signInController.Handle(*httpRequest)
+
+		verifyHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
+	})
+
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
 		signInController, _, mockGetAccountByEmail, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
