@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/models"
@@ -99,6 +100,20 @@ func TestSignInController(t *testing.T) {
 		httpResponse := signInController.Handle(*httpRequest)
 
 		verifyHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
+	})
+
+	t.Run("InvalidValidationPasswordError", func(t *testing.T) {
+		signInController, _, _, _, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		httpMinPasswordRequest := createHttpRequest(t, email, "invalid")
+		httpMaxPasswordRequest := createHttpRequest(t, email, strings.Repeat("invalid_password", 80))
+		httpResponseMin := signInController.Handle(*httpMinPasswordRequest)
+		httpResponseMax := signInController.Handle(*httpMaxPasswordRequest)
+
+
+		verifyHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
+		verifyHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
 	})
 
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
