@@ -8,7 +8,6 @@ import (
 	"github.com/Williancc1557/Oauth2.0-golang/internal/infra/db/postgreSQL/users_repository"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/controllers"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/utils"
-	"github.com/go-playground/validator/v10"
 )
 
 func MakeSignInController(db *sql.DB) *controllers.SignInController {
@@ -24,11 +23,5 @@ func MakeSignInController(db *sql.DB) *controllers.SignInController {
 		Db: db,
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	return &controllers.SignInController{
-		Encrypter:         encrypter,
-		GetAccountByEmail: getAccountByEmail,
-		ResetRefreshToken: resetRefreshToken,
-		Validate:          validate,
-	}
+	return controllers.NewSignInController(getAccountByEmail, encrypter, resetRefreshToken)
 }

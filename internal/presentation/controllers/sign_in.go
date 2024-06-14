@@ -18,6 +18,17 @@ type SignInController struct {
 	Validate          *validator.Validate
 }
 
+func NewSignInController(getAccountByEmail usecase.GetAccountByEmail, encrypter dataProtocols.Encrypter, resetRefreshToken usecase.ResetRefreshToken) *SignInController {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	return &SignInController{
+		GetAccountByEmail: getAccountByEmail,
+		Encrypter:         encrypter,
+		ResetRefreshToken: resetRefreshToken,
+		Validate:          validate,
+	}
+}
+
 type SignInControllerBody struct {
 	Email    string `validate:"email"`
 	Password string `validate:"min=8,max=128"`
