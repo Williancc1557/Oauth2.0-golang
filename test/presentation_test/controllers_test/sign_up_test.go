@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -81,4 +82,15 @@ func TestSignUpController(t *testing.T) {
 		verifyHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
 	})
 
+	t.Run("InvalidEmailCredentials", func(t *testing.T) {
+		signInController, mockGetAccountByEmail, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
+
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signInController.Handle(*httpRequest)
+
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid credentials")
+	})
 }
