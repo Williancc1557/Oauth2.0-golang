@@ -3,11 +3,13 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/usecase"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/controllers"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/test/mocks"
@@ -21,17 +23,19 @@ const (
 	password = "testpassword"
 )
 
-func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAccountByEmail, *gomock.Controller) {
+func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAccountByEmail, *mocks.MockAddAccount, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
 	validate := validator.New(validator.WithRequiredStructEnabled())
+	mockAddAccount := mocks.NewMockAddAccount(ctrl)
 
 	signUpController := &controllers.SignUpController{
 		GetAccountByEmail: mockGetAccountByEmail,
 		Validate:          validate,
+		AddAccount:        mockAddAccount,
 	}
 
-	return signUpController, mockGetAccountByEmail, ctrl
+	return signUpController, mockGetAccountByEmail, mockAddAccount, ctrl
 }
 
 func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequest {
@@ -59,7 +63,7 @@ func verifyHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expe
 
 func TestSignUpController(t *testing.T) {
 	t.Run("InvalidValidationEmailError", func(t *testing.T) {
-		signUpController, _, ctrl := setupMocks(t)
+		signUpController, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		httpRequest := createHttpRequest(t, "invalid_email", password)
@@ -69,7 +73,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("InvalidValidationPasswordError", func(t *testing.T) {
-		signUpController, _, ctrl := setupMocks(t)
+		signUpController, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		httpMinPasswordRequest := createHttpRequest(t, email, "invalid")
@@ -82,7 +86,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, nil)
@@ -91,5 +95,22 @@ func TestSignUpController(t *testing.T) {
 		httpResponse := signUpController.Handle(*httpRequest)
 
 		verifyHttpResponse(t, httpResponse, http.StatusConflict, "User already exists")
+	})
+
+	t.Run("ErrorWhileAddAccount", func(t *testing.T) {
+		signUpController, mockGetAccountByEmail, mockAddAccount, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		signUpControllerInput := &usecase.AddAccountInput{
+			Email:    email,
+			Password: password,
+		}
+		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
+		mockAddAccount.EXPECT().Add(signUpControllerInput).Return(nil, errors.New("fake-error"))
+
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signUpController.Handle(*httpRequest)
+
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while adding account")
 	})
 }
