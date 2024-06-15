@@ -37,7 +37,7 @@ type SignUpControllerResponse struct {
 }
 
 func (c *SignUpController) Handle(req presentationProtocols.HttpRequest) *presentationProtocols.HttpResponse {
-	var body SignInControllerBody
+	var body SignUpControllerBody
 
 	err := json.NewDecoder(req.Body).Decode(&body)
 	if err != nil {

@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -37,7 +36,7 @@ func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAcco
 
 func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequest {
 	var requestBody bytes.Buffer
-	err := json.NewEncoder(&requestBody).Encode(&controllers.SignInControllerBody{
+	err := json.NewEncoder(&requestBody).Encode(&controllers.SignUpControllerBody{
 		Email:    email,
 		Password: password,
 	})
@@ -66,31 +65,31 @@ func TestSignUpController(t *testing.T) {
 		httpRequest := createHttpRequest(t, "invalid_email", password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifyHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
+		verifyHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
 	})
 
 	t.Run("InvalidValidationPasswordError", func(t *testing.T) {
-		signInController, _, ctrl := setupMocks(t)
+		signUpController, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		httpMinPasswordRequest := createHttpRequest(t, email, "invalid")
 		httpMaxPasswordRequest := createHttpRequest(t, email, strings.Repeat("invalid_password", 80))
-		httpResponseMin := signInController.Handle(*httpMinPasswordRequest)
-		httpResponseMax := signInController.Handle(*httpMaxPasswordRequest)
+		httpResponseMin := signUpController.Handle(*httpMinPasswordRequest)
+		httpResponseMax := signUpController.Handle(*httpMaxPasswordRequest)
 
-		verifyHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
-		verifyHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignInControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
+		verifyHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
+		verifyHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
 	})
 
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
-		signInController, mockGetAccountByEmail, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
-		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
+		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, nil)
 
 		httpRequest := createHttpRequest(t, email, password)
-		httpResponse := signInController.Handle(*httpRequest)
+		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid credentials")
+		verifyHttpResponse(t, httpResponse, http.StatusConflict, "User already exists")
 	})
 }
