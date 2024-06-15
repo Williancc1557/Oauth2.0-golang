@@ -1,12 +1,19 @@
 package usecase
 
-import "github.com/Williancc1557/Oauth2.0-golang/internal/domain/models"
-
 type AddAccountInput struct {
 	Email    string
 	Password string
 }
 
+type AddAccountOutput struct {
+	Id           string
+	Email        string
+	Password     string
+	RefreshToken string
+	AccessToken  string
+	ExpiresIn    int
+}
+
 type AddAccount interface {
-	Add(account AddAccountInput) (*models.AccountModel, error)
+	Add(account *AddAccountInput) (*AddAccountOutput, error)
 }

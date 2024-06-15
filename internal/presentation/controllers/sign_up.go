@@ -13,6 +13,7 @@ import (
 type SignUpController struct {
 	GetAccountByEmail usecase.GetAccountByEmail
 	Validate          *validator.Validate
+	AddAccount        usecase.AddAccount
 }
 
 func NewSignUpController(getAccountByEmail usecase.GetAccountByEmail) SignUpController {
@@ -59,7 +60,20 @@ func (c *SignUpController) Handle(req presentationProtocols.HttpRequest) *presen
 		}, http.StatusConflict)
 	}
 
-	// account, err := c.AddAccount.Add(body)
+	addAccountInput := &usecase.AddAccountInput{
+		Email:    body.Email,
+		Password: body.Password,
+	}
+	account, err := c.AddAccount.Add(addAccountInput)
+	if err != nil {
+		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: "An error ocurred while adding account",
+		}, http.StatusBadRequest)
+	}
 
-	return helpers.CreateResponse("", http.StatusOK)
+	return helpers.CreateResponse(&SignUpControllerResponse{
+		AccessToken:  account.AccessToken,
+		ExpiresIn:    account.ExpiresIn,
+		RefreshToken: account.RefreshToken,
+	}, http.StatusOK)
 }
