@@ -62,6 +62,32 @@ func verifyHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expe
 }
 
 func TestSignUpController(t *testing.T) {
+
+	t.Run("Success", func(t *testing.T) {
+		signUpController, mockGetAccountByEmail, mockAddAccount, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		signUpControllerInput := &usecase.AddAccountInput{
+			Email:    email,
+			Password: password,
+		}
+		AddAccountOutput := &usecase.AddAccountOutput{
+			Id:           "fake-id",
+			Email:        email,
+			Password:     password,
+			RefreshToken: "fake-refresh-token",
+			AccessToken:  "fake-access-token",
+			ExpiresIn:    123,
+		}
+		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
+		mockAddAccount.EXPECT().Add(signUpControllerInput).Return(AddAccountOutput, nil)
+
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signUpController.Handle(*httpRequest)
+
+		require.Equal(t, httpResponse.StatusCode, http.StatusOK)
+	})
+
 	t.Run("InvalidValidationEmailError", func(t *testing.T) {
 		signUpController, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
