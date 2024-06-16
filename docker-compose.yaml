@@ -12,15 +12,6 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-  app:
-    container_name: auth2_golang
-    build:
-      dockerfile: Dockerfile
-      context: .
-      target: dev
-    volumes:
-      - .:/opt/app/api
-    command: go run .
 
 volumes:
   db_data:
