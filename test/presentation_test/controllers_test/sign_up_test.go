@@ -61,6 +61,22 @@ func verifyHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expe
 	require.Equal(t, responseBody.Error, expectedError)
 }
 
+func convertReadCloserToStruct(reader io.ReadCloser, v interface{}) error {
+	defer reader.Close()
+
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func TestSignUpController(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
@@ -86,6 +102,17 @@ func TestSignUpController(t *testing.T) {
 		httpResponse := signUpController.Handle(*httpRequest)
 
 		require.Equal(t, httpResponse.StatusCode, http.StatusOK)
+
+		expectedBody := &controllers.SignUpControllerResponse{
+			ExpiresIn:    123,
+			AccessToken:  "fake-access-token",
+			RefreshToken: "fake-refresh-token",
+		}
+
+		var httpResponseBody controllers.SignUpControllerResponse
+		err := convertReadCloserToStruct(httpResponse.Body, &httpResponseBody)
+		require.NoError(t, err)
+		require.Equal(t, expectedBody, &httpResponseBody)
 	})
 
 	t.Run("InvalidValidationEmailError", func(t *testing.T) {
