@@ -115,6 +115,20 @@ func TestSignUpController(t *testing.T) {
 		require.Equal(t, expectedBody, &httpResponseBody)
 	})
 
+	t.Run("InvalidBodyRequest", func(t *testing.T) {
+		signUpController, _, _, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		httpRequest := &protocols.HttpRequest{
+			Body:   io.NopCloser(strings.NewReader("{invalid json")),
+			Header: nil,
+		}
+
+		httpResponse := signUpController.Handle(*httpRequest)
+
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid body request")
+	})
+
 	t.Run("InvalidValidationEmailError", func(t *testing.T) {
 		signUpController, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
