@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/Williancc1557/Oauth2.0-golang/internal/data/protocols"
@@ -60,5 +61,25 @@ func TestAddAccountTest(t *testing.T) {
 		require.Equal(t, response.Password, account.Password)
 		require.Equal(t, response.RefreshToken, account.RefreshToken)
 		require.Equal(t, response.AccessToken, account.AccessToken)
+	})
+
+	t.Run("AddAccountRepositoryError", func(t *testing.T) {
+		dbAddAccount, mockAddAccountRepository, ctrl := setupAddAccountMocks(t)
+		defer ctrl.Finish()
+
+		mockAddAccountRepository.EXPECT().Add(&protocols.AddAccountRepositoryInput{
+			Email:    email,
+			Password: password,
+		}).Return(nil, errors.New("fake-error"))
+
+		accountInput := &usecaseDomain.AddAccountInput{
+			Email:    email,
+			Password: password,
+		}
+
+		response, err := dbAddAccount.Add(accountInput)
+
+		require.Error(t, err)
+		require.Nil(t, response)
 	})
 }
