@@ -53,14 +53,13 @@ func TestEncrypterUtils(t *testing.T) {
 	})
 
 	t.Run("CompareSuccess", func(t *testing.T) {
-		encripter, _, ctrl := setupMocks(t)
+		encripter, mockBcrypt, ctrl := setupMocks(t)
 		ctrl.Finish()
 
 		password := "123"
-		hash, err := encripter.Hash(password)
-		require.NoError(t, err)
+		mockBcrypt.EXPECT().CompareHashAndPassword([]byte(password), []byte(password)).Return(nil)
 
-		value := encripter.Compare(password, hash)
+		value := encripter.Compare(password, password)
 
 		require.True(t, value)
 	})

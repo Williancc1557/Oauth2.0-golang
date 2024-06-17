@@ -6,6 +6,7 @@ import (
 
 type CryptoUtil interface {
 	GenerateFromPassword([]byte, int) ([]byte, error)
+	CompareHashAndPassword(hashedPassword []byte, password []byte) error
 }
 
 type EncrypterUtil struct {
@@ -16,6 +17,10 @@ type BcryptUtil struct{}
 
 func (b *BcryptUtil) GenerateFromPassword(password []byte, cost int) ([]byte, error) {
 	return bcrypt.GenerateFromPassword(password, cost)
+}
+
+func (b *BcryptUtil) CompareHashAndPassword(hashedPassword []byte, password []byte) error {
+	return bcrypt.CompareHashAndPassword(hashedPassword, password)
 }
 
 func NewEncrypterUtil() *EncrypterUtil {
@@ -33,7 +38,7 @@ func (e *EncrypterUtil) Hash(value string) (string, error) {
 }
 
 func (e *EncrypterUtil) Compare(value string, hashedValue string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedValue), []byte(value))
+	err := e.Crypto.CompareHashAndPassword([]byte(hashedValue), []byte(value))
 
 	return err == nil
 }
