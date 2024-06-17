@@ -38,8 +38,6 @@ func TestAddAccountTest(t *testing.T) {
 			Email:        email,
 			Password:     "fake-account-password",
 			RefreshToken: "fake-account-refresh-token",
-			AccessToken:  "fake-account-access-token",
-			ExpiresIn:    123,
 		}
 
 		mockAddAccountRepository.EXPECT().Add(&protocols.AddAccountRepositoryInput{
@@ -60,7 +58,6 @@ func TestAddAccountTest(t *testing.T) {
 		require.Equal(t, response.Email, account.Email)
 		require.Equal(t, response.Password, account.Password)
 		require.Equal(t, response.RefreshToken, account.RefreshToken)
-		require.Equal(t, response.AccessToken, account.AccessToken)
 	})
 
 	t.Run("AddAccountRepositoryError", func(t *testing.T) {

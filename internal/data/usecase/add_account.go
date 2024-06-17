@@ -24,7 +24,5 @@ func (db DbAddAccount) Add(account *usecase.AddAccountInput) (*usecase.AddAccoun
 		Email:        accountData.Email,
 		Password:     accountData.Password,
 		RefreshToken: accountData.RefreshToken,
-		AccessToken:  accountData.AccessToken,
-		ExpiresIn:    accountData.ExpiresIn,
 	}, nil
 }

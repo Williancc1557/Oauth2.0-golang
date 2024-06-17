@@ -10,10 +10,8 @@ type AddAccountRepositoryOutput struct {
 	Email        string
 	Password     string
 	RefreshToken string
-	AccessToken  string
-	ExpiresIn    int
 }
 
 type AddAccountRepository interface {
-	Add(account *AddAccountRepositoryInput) (*AddAccountRepositoryOutput, error)
+	Add(data *AddAccountRepositoryInput) (*AddAccountRepositoryOutput, error)
 }
