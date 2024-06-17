@@ -4,10 +4,28 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type EncrypterUtil struct{}
+type CryptoUtil interface {
+	GenerateFromPassword([]byte, int) ([]byte, error)
+}
+
+type EncrypterUtil struct {
+	Crypto CryptoUtil
+}
+
+type BcryptUtil struct{}
+
+func (b *BcryptUtil) GenerateFromPassword(password []byte, cost int) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(password, cost)
+}
+
+func NewEncrypterUtil() *EncrypterUtil {
+	return &EncrypterUtil{
+		Crypto: &BcryptUtil{},
+	}
+}
 
 func (e *EncrypterUtil) Hash(value string) (string, error) {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(value), bcrypt.DefaultCost)
+	hashed, err := e.Crypto.GenerateFromPassword([]byte(value), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
