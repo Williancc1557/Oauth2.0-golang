@@ -22,7 +22,7 @@ func (db DbAddAccount) Add(account *usecase.AddAccountInput) (*usecase.AddAccoun
 	return &usecase.AddAccountOutput{
 		Id:           accountData.Id,
 		Email:        accountData.Email,
-		Password:     account.Password,
+		Password:     accountData.Password,
 		RefreshToken: accountData.RefreshToken,
 		AccessToken:  accountData.AccessToken,
 		ExpiresIn:    accountData.ExpiresIn,
