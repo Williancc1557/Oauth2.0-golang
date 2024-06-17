@@ -2,6 +2,7 @@ package users_repository_test
 
 import (
 	"database/sql"
+	"errors"
 	"regexp"
 	"testing"
 
@@ -50,6 +51,20 @@ func TestGetAccountByEmailPostgreRepository(t *testing.T) {
 		nilRows := sqlmock.NewRows([]string{"id", "email", "password", "refresh_token"})
 
 		mock.ExpectQuery(query).WithArgs(email).WillReturnRows(nilRows)
+
+		account, err := repo.Get(email)
+		require.Error(t, err)
+		require.Nil(t, account)
+	})
+
+	t.Run("InvalidQueryError", func(t *testing.T) {
+		repo, mock, db := setupMocks(t)
+		defer db.Close()
+
+		email := "test@example.com"
+		query := regexp.QuoteMeta("SELECT * FROM users WHERE email = $1")
+
+		mock.ExpectQuery(query).WithArgs(email).WillReturnError(errors.New("fake-error"))
 
 		account, err := repo.Get(email)
 		require.Error(t, err)
