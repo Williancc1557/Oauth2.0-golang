@@ -72,8 +72,8 @@ func (c *SignUpController) Handle(req presentationProtocols.HttpRequest) *presen
 	}
 
 	return helpers.CreateResponse(&SignUpControllerResponse{
-		AccessToken:  account.AccessToken,
-		ExpiresIn:    account.ExpiresIn,
+		// AccessToken:  account.AccessToken,
+		// ExpiresIn:    account.ExpiresIn,
 		RefreshToken: account.RefreshToken,
 	}, http.StatusOK)
 }

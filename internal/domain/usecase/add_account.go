@@ -10,8 +10,6 @@ type AddAccountOutput struct {
 	Email        string
 	Password     string
 	RefreshToken string
-	AccessToken  string
-	ExpiresIn    int
 }
 
 type AddAccount interface {
