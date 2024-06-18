@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Williancc1557/Oauth2.0-golang/internal/data/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/usecase"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/helpers"
 	presentationProtocols "github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
@@ -15,7 +14,7 @@ type SignUpController struct {
 	GetAccountByEmail usecase.GetAccountByEmail
 	Validate          *validator.Validate
 	AddAccount        usecase.AddAccount
-	CreateAccessToken protocols.CreateAccessToken
+	CreateAccessToken usecase.CreateAccessToken
 }
 
 func NewSignUpController(getAccountByEmail usecase.GetAccountByEmail) SignUpController {

@@ -21,21 +21,24 @@ import (
 const (
 	email    = "test@example.com"
 	password = "testpassword"
+	userId   = "fake-id"
 )
 
-func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAccountByEmail, *mocks.MockAddAccount, *gomock.Controller) {
+func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAccountByEmail, *mocks.MockAddAccount, *mocks.MockCreateAccessToken, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	mockAddAccount := mocks.NewMockAddAccount(ctrl)
+	createAccessToken := mocks.NewMockCreateAccessToken(ctrl)
 
 	signUpController := &controllers.SignUpController{
 		GetAccountByEmail: mockGetAccountByEmail,
 		Validate:          validate,
 		AddAccount:        mockAddAccount,
+		CreateAccessToken: createAccessToken,
 	}
 
-	return signUpController, mockGetAccountByEmail, mockAddAccount, ctrl
+	return signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl
 }
 
 func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequest {
@@ -78,9 +81,8 @@ func convertReadCloserToStruct(reader io.ReadCloser, v interface{}) error {
 }
 
 func TestSignUpController(t *testing.T) {
-
 	t.Run("Success", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, mockAddAccount, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		signUpControllerInput := &usecase.AddAccountInput{
@@ -88,15 +90,18 @@ func TestSignUpController(t *testing.T) {
 			Password: password,
 		}
 		AddAccountOutput := &usecase.AddAccountOutput{
-			Id:           "fake-id",
+			Id:           userId,
 			Email:        email,
 			Password:     password,
 			RefreshToken: "fake-refresh-token",
-			AccessToken:  "fake-access-token",
-			ExpiresIn:    123,
+		}
+		CreateAccessTokenOutput := &usecase.CreateAccessTokenOutput{
+			AccessToken: "fake-access-token",
+			ExpiresIn:   123,
 		}
 		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
 		mockAddAccount.EXPECT().Add(signUpControllerInput).Return(AddAccountOutput, nil)
+		createAccessToken.EXPECT().Create(userId).Return(CreateAccessTokenOutput, nil)
 
 		httpRequest := createHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
@@ -116,7 +121,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("InvalidBodyRequest", func(t *testing.T) {
-		signUpController, _, _, ctrl := setupMocks(t)
+		signUpController, _, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		httpRequest := &protocols.HttpRequest{
@@ -130,7 +135,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("InvalidValidationEmailError", func(t *testing.T) {
-		signUpController, _, _, ctrl := setupMocks(t)
+		signUpController, _, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		httpRequest := createHttpRequest(t, "invalid_email", password)
@@ -140,7 +145,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("InvalidValidationPasswordError", func(t *testing.T) {
-		signUpController, _, _, ctrl := setupMocks(t)
+		signUpController, _, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		httpMinPasswordRequest := createHttpRequest(t, email, "invalid")
@@ -153,7 +158,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, _, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, _, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, nil)
@@ -165,7 +170,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("ErrorWhileAddAccount", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, mockAddAccount, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, mockAddAccount, _, ctrl := setupMocks(t)
 		defer ctrl.Finish()
 
 		signUpControllerInput := &usecase.AddAccountInput{
@@ -179,5 +184,29 @@ func TestSignUpController(t *testing.T) {
 		httpResponse := signUpController.Handle(*httpRequest)
 
 		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while adding account")
+	})
+
+	t.Run("ErrorWhileCreateAccess", func(t *testing.T) {
+		signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl := setupMocks(t)
+		defer ctrl.Finish()
+
+		signUpControllerInput := &usecase.AddAccountInput{
+			Email:    email,
+			Password: password,
+		}
+		AddAccountOutput := &usecase.AddAccountOutput{
+			Id:           userId,
+			Email:        email,
+			Password:     password,
+			RefreshToken: "fake-refresh-token",
+		}
+		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
+		mockAddAccount.EXPECT().Add(signUpControllerInput).Return(AddAccountOutput, nil)
+		createAccessToken.EXPECT().Create(userId).Return(nil, errors.New("fake-error"))
+
+		httpRequest := createHttpRequest(t, email, password)
+		httpResponse := signUpController.Handle(*httpRequest)
+
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while creating access token")
 	})
 }

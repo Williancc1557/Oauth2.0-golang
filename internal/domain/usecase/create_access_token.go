@@ -1,4 +1,4 @@
-package protocols
+package usecase
 
 type CreateAccessTokenOutput struct {
 	AccessToken string
