@@ -81,4 +81,27 @@ func TestAddAccountRepository(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, account)
 	})
+
+	t.Run("ErrorExec", func(t *testing.T) {
+		addAccountRepository, mock, db, mockEncrypter, ctrl := setupAddAccountRepositoryMocks(t)
+		defer ctrl.Finish()
+		defer db.Close()
+
+		mockEncrypter.EXPECT().Hash(password).Return(hashedPassword, nil)
+
+		queryExec := regexp.QuoteMeta("INSERT INTO users (id, email, password, refresh_token) VALUES ($1, $2, $3, $4)")
+		mock.ExpectExec(queryExec).
+			WithArgs(sqlmock.AnyArg(), email, hashedPassword, sqlmock.AnyArg()).
+			WillReturnError(errors.New("fake-error"))
+
+		input := &protocols.AddAccountRepositoryInput{
+			Email:    email,
+			Password: password,
+		}
+		account, err := addAccountRepository.Add(input)
+
+		require.Error(t, err)
+		require.Nil(t, account)
+	})
+
 }
