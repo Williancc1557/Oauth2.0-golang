@@ -2,6 +2,7 @@ package users_repository_test
 
 import (
 	"database/sql"
+	"errors"
 	"regexp"
 	"testing"
 
@@ -62,6 +63,22 @@ func TestAddAccountRepository(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, account)
 		require.Equal(t, email, account.Email)
+	})
 
+	t.Run("ErrorHashPassword", func(t *testing.T) {
+		addAccountRepository, _, db, mockEncrypter, ctrl := setupAddAccountRepositoryMocks(t)
+		defer ctrl.Finish()
+		defer db.Close()
+
+		mockEncrypter.EXPECT().Hash(password).Return("", errors.New("fake-error"))
+
+		input := &protocols.AddAccountRepositoryInput{
+			Email:    email,
+			Password: password,
+		}
+		account, err := addAccountRepository.Add(input)
+
+		require.Error(t, err)
+		require.Nil(t, account)
 	})
 }
