@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Williancc1557/Oauth2.0-golang/internal/data/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/usecase"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/helpers"
 	presentationProtocols "github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
@@ -14,6 +15,7 @@ type SignUpController struct {
 	GetAccountByEmail usecase.GetAccountByEmail
 	Validate          *validator.Validate
 	AddAccount        usecase.AddAccount
+	CreateAccessToken protocols.CreateAccessToken
 }
 
 func NewSignUpController(getAccountByEmail usecase.GetAccountByEmail) SignUpController {
@@ -31,9 +33,9 @@ type SignUpControllerBody struct {
 }
 
 type SignUpControllerResponse struct {
-	ExpiresIn    int
-	AccessToken  string
-	RefreshToken string
+	ExpiresIn    int    `json:"expiresIn"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 func (c *SignUpController) Handle(req presentationProtocols.HttpRequest) *presentationProtocols.HttpResponse {
@@ -71,9 +73,16 @@ func (c *SignUpController) Handle(req presentationProtocols.HttpRequest) *presen
 		}, http.StatusBadRequest)
 	}
 
+	tokenData, err := c.CreateAccessToken.Create(account.Id)
+	if err != nil {
+		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
+			Error: "An error ocurred while creating access token",
+		}, http.StatusBadRequest)
+	}
+
 	return helpers.CreateResponse(&SignUpControllerResponse{
-		// AccessToken:  account.AccessToken,
-		// ExpiresIn:    account.ExpiresIn,
+		AccessToken:  tokenData.AccessToken,
+		ExpiresIn:    tokenData.ExpiresIn,
 		RefreshToken: account.RefreshToken,
 	}, http.StatusOK)
 }
