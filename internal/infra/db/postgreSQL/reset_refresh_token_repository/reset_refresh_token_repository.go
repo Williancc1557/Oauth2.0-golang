@@ -10,6 +10,12 @@ type ResetRefreshTokenPostgreRepository struct {
 	Db *sql.DB
 }
 
+func NewResetRefreshTokenPostgreRepository(db *sql.DB) *ResetRefreshTokenPostgreRepository {
+	return &ResetRefreshTokenPostgreRepository{
+		Db: db,
+	}
+}
+
 func (rep *ResetRefreshTokenPostgreRepository) Reset(userId string) (string, error) {
 	refreshToken := uuid.New().String()
 
