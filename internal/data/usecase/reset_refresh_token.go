@@ -6,6 +6,12 @@ type DbResetRefreshToken struct {
 	ResetRefreshTokenRepository protocols.ResetRefreshTokenRepository
 }
 
+func NewDbResetRefreshToken(ResetRefreshTokenRepository protocols.ResetRefreshTokenRepository) *DbResetRefreshToken {
+	return &DbResetRefreshToken{
+		ResetRefreshTokenRepository,
+	}
+}
+
 func (rep DbResetRefreshToken) Reset(userId string) (string, error) {
 	return rep.ResetRefreshTokenRepository.Reset(userId)
 }

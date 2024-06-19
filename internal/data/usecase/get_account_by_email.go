@@ -9,6 +9,12 @@ type DbGetAccountByEmail struct {
 	GetAccountByEmailRepository protocols.GetAccountByEmailRepository
 }
 
+func NewGetAccountByEmail(GetAccountByEmailRepository protocols.GetAccountByEmailRepository) *DbGetAccountByEmail {
+	return &DbGetAccountByEmail{
+		GetAccountByEmailRepository,
+	}
+}
+
 func (db *DbGetAccountByEmail) Get(email string) (*models.AccountModel, error) {
 	value, err := db.GetAccountByEmailRepository.Get(email)
 

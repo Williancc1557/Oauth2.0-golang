@@ -9,6 +9,12 @@ type DbAddAccount struct {
 	AddAccountRepository dataProtocols.AddAccountRepository
 }
 
+func NewDbAddAccount(AddAccountRepository dataProtocols.AddAccountRepository) *DbAddAccount {
+	return &DbAddAccount{
+		AddAccountRepository,
+	}
+}
+
 func (db DbAddAccount) Add(account *usecase.AddAccountInput) (*usecase.AddAccountOutput, error) {
 	accountData, err := db.AddAccountRepository.Add(&dataProtocols.AddAccountRepositoryInput{
 		Email:    account.Email,
