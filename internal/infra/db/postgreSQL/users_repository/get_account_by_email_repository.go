@@ -11,6 +11,12 @@ type GetAccountByEmailPostgreRepository struct {
 	Db *sql.DB
 }
 
+func NewGetAccountByEmailPostgreRepository(db *sql.DB) *GetAccountByEmailPostgreRepository {
+	return &GetAccountByEmailPostgreRepository{
+		Db: db,
+	}
+}
+
 func (rep *GetAccountByEmailPostgreRepository) Get(email string) (*models.AccountModel, error) {
 	var account models.AccountModel
 	query := "SELECT * FROM users WHERE email = $1"

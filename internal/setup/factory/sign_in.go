@@ -13,9 +13,7 @@ import (
 func MakeSignInController(db *sql.DB) *controllers.SignInController {
 	encrypter := utils.NewEncrypterUtil()
 
-	getAccountByEmailRepository := &users_repository.GetAccountByEmailPostgreRepository{
-		Db: db,
-	}
+	getAccountByEmailRepository := users_repository.NewGetAccountByEmailPostgreRepository(db)
 	getAccountByEmail := usecase.NewGetAccountByEmail(getAccountByEmailRepository)
 	resetRefreshToken := &reset_refresh_token_repository.ResetRefreshTokenPostgreRepository{
 		Db: db,
