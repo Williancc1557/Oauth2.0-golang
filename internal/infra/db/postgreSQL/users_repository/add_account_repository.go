@@ -8,12 +8,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type AddAccountRepository struct {
+type AddAccountPostgreRepository struct {
 	Db        *sql.DB
 	Encrypter protocols.Encrypter
 }
 
-func (rep *AddAccountRepository) Add(data *protocols.AddAccountRepositoryInput) (*protocols.AddAccountRepositoryOutput, error) {
+func NewAddAccountPostgreRepository(db *sql.DB, encrypter protocols.Encrypter) *AddAccountPostgreRepository {
+	return &AddAccountPostgreRepository{
+		Db:        db,
+		Encrypter: encrypter,
+	}
+}
+
+func (rep *AddAccountPostgreRepository) Add(data *protocols.AddAccountRepositoryInput) (*protocols.AddAccountRepositoryOutput, error) {
 	query := "INSERT INTO users (id, email, password, refresh_token) VALUES ($1, $2, $3, $4)"
 	userId := uuid.New().String()
 	refreshToken := uuid.New().String()
