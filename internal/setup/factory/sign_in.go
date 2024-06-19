@@ -16,9 +16,7 @@ func MakeSignInController(db *sql.DB) *controllers.SignInController {
 	getAccountByEmailRepository := &users_repository.GetAccountByEmailPostgreRepository{
 		Db: db,
 	}
-	getAccountByEmail := &usecase.DbGetAccountByEmail{
-		GetAccountByEmailRepository: getAccountByEmailRepository,
-	}
+	getAccountByEmail := usecase.NewGetAccountByEmail(getAccountByEmailRepository)
 	resetRefreshToken := &reset_refresh_token_repository.ResetRefreshTokenPostgreRepository{
 		Db: db,
 	}
