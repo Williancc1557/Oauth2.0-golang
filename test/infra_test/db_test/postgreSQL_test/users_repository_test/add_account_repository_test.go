@@ -20,7 +20,7 @@ const (
 	hashedPassword = "fake_hashed_password"
 )
 
-func setupAddAccountRepositoryMocks(t *testing.T) (*users_repository.AddAccountRepository, sqlmock.Sqlmock, *sql.DB, *mocks.MockEncrypter, *gomock.Controller) {
+func setupAddAccountRepositoryMocks(t *testing.T) (*users_repository.AddAccountPostgreRepository, sqlmock.Sqlmock, *sql.DB, *mocks.MockEncrypter, *gomock.Controller) {
 	db, mock, err := sqlmock.New()
 	ctrl := gomock.NewController(t)
 
@@ -28,10 +28,10 @@ func setupAddAccountRepositoryMocks(t *testing.T) (*users_repository.AddAccountR
 
 	mockEncrypter := mocks.NewMockEncrypter(ctrl)
 
-	addAccountRepository := &users_repository.AddAccountRepository{
-		Db:        db,
-		Encrypter: mockEncrypter,
-	}
+	addAccountRepository := users_repository.NewAddAccountPostgreRepository(
+		db,
+		mockEncrypter,
+	)
 
 	return addAccountRepository, mock, db, mockEncrypter, ctrl
 }

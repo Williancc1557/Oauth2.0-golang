@@ -13,7 +13,6 @@ import (
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/controllers"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/test/mocks"
-	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
@@ -27,16 +26,14 @@ const (
 func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAccountByEmail, *mocks.MockAddAccount, *mocks.MockCreateAccessToken, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
-	validate := validator.New(validator.WithRequiredStructEnabled())
 	mockAddAccount := mocks.NewMockAddAccount(ctrl)
 	createAccessToken := mocks.NewMockCreateAccessToken(ctrl)
 
-	signUpController := &controllers.SignUpController{
-		GetAccountByEmail: mockGetAccountByEmail,
-		Validate:          validate,
-		AddAccount:        mockAddAccount,
-		CreateAccessToken: createAccessToken,
-	}
+	signUpController := controllers.NewSignUpController(
+		mockGetAccountByEmail,
+		mockAddAccount,
+		createAccessToken,
+	)
 
 	return signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl
 }

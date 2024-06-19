@@ -13,7 +13,6 @@ import (
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/controllers"
 	"github.com/Williancc1557/Oauth2.0-golang/internal/presentation/protocols"
 	"github.com/Williancc1557/Oauth2.0-golang/test/mocks"
-	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/require"
 
 	"github.com/golang/mock/gomock"
@@ -30,14 +29,12 @@ func setupMocks(t *testing.T) (*controllers.SignInController, *mocks.MockEncrypt
 	mockEncrypter := mocks.NewMockEncrypter(ctrl)
 	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
 	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
-	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	signInController := &controllers.SignInController{
-		GetAccountByEmail: mockGetAccountByEmail,
-		Encrypter:         mockEncrypter,
-		ResetRefreshToken: mockResetRefreshToken,
-		Validate:          validate,
-	}
+	signInController := controllers.NewSignInController(
+		mockGetAccountByEmail,
+		mockEncrypter,
+		mockResetRefreshToken,
+	)
 
 	return signInController, mockEncrypter, mockGetAccountByEmail, mockResetRefreshToken, ctrl
 }

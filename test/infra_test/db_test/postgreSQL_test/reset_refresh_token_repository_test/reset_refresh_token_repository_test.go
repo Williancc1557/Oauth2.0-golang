@@ -15,9 +15,7 @@ func setupMocks(t *testing.T) (*reset_refresh_token_repository.ResetRefreshToken
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 
-	ResetRefreshTokenPostgreRepository := &reset_refresh_token_repository.ResetRefreshTokenPostgreRepository{
-		Db: db,
-	}
+	ResetRefreshTokenPostgreRepository := reset_refresh_token_repository.NewResetRefreshTokenPostgreRepository(db)
 
 	return ResetRefreshTokenPostgreRepository, mock, db
 }

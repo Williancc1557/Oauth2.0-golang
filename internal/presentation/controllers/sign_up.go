@@ -17,12 +17,14 @@ type SignUpController struct {
 	CreateAccessToken usecase.CreateAccessToken
 }
 
-func NewSignUpController(getAccountByEmail usecase.GetAccountByEmail) SignUpController {
+func NewSignUpController(getAccountByEmail usecase.GetAccountByEmail, addAccount usecase.AddAccount, createAccessToken usecase.CreateAccessToken) *SignUpController {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	return SignUpController{
+	return &SignUpController{
 		Validate:          validate,
 		GetAccountByEmail: getAccountByEmail,
+		AddAccount:        addAccount,
+		CreateAccessToken: createAccessToken,
 	}
 }
 

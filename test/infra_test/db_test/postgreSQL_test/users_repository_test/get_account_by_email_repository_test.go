@@ -15,9 +15,7 @@ func setupMocks(t *testing.T) (*users_repository.GetAccountByEmailPostgreReposit
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 
-	getAccountByEmailRepository := &users_repository.GetAccountByEmailPostgreRepository{
-		Db: db,
-	}
+	getAccountByEmailRepository := users_repository.NewGetAccountByEmailPostgreRepository(db)
 
 	return getAccountByEmailRepository, mock, db
 }
