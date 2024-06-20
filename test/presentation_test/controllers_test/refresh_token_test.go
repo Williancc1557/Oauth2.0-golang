@@ -26,7 +26,7 @@ func setupRefreshTokenMocks(t *testing.T) (*controllers.RefreshTokenController, 
 	return sut, getAccountByRefreshToken, createAccessToken, ctrl
 }
 
-func CreateHttpRequest(t *testing.T) protocols.HttpRequest {
+func createRefreshTokenHttpRequest(t *testing.T) protocols.HttpRequest {
 	var requestBody bytes.Buffer
 	err := json.NewEncoder(&requestBody).Encode(&controllers.SignInControllerBody{})
 	require.NoError(t, err)
@@ -60,7 +60,7 @@ func TestRefreshTokenController(t *testing.T) {
 		getAccountByRefreshToken.EXPECT().Get(refreshToken).Return(account, nil)
 		createAccessToken.EXPECT().Create(userId).Return(accessTokenData, nil)
 
-		requestData := CreateHttpRequest(t)
+		requestData := createRefreshTokenHttpRequest(t)
 		response := sut.Handle(requestData)
 
 		require.Equal(t, response.StatusCode, http.StatusOK)
@@ -82,10 +82,29 @@ func TestRefreshTokenController(t *testing.T) {
 
 		getAccountByRefreshToken.EXPECT().Get(refreshToken).Return(nil, errors.New("fake-error"))
 
-		requestData := CreateHttpRequest(t)
+		requestData := createRefreshTokenHttpRequest(t)
 		response := sut.Handle(requestData)
 
-		require.Equal(t, response.StatusCode, http.StatusBadRequest)
+		verifyHttpResponse(t, response, http.StatusBadRequest, "An invalid refresh token was provided")
+	})
 
+	t.Run("ErrorCreateAccessToken", func(t *testing.T) {
+		sut, getAccountByRefreshToken, createAccessToken, ctrl := setupRefreshTokenMocks(t)
+		defer ctrl.Finish()
+
+		account := &models.AccountModel{
+			Id:           userId,
+			Email:        email,
+			Password:     password,
+			RefreshToken: refreshToken,
+		}
+
+		getAccountByRefreshToken.EXPECT().Get(refreshToken).Return(account, nil)
+		createAccessToken.EXPECT().Create(userId).Return(nil, errors.New("fake-error"))
+
+		requestData := createRefreshTokenHttpRequest(t)
+		response := sut.Handle(requestData)
+
+		verifyHttpResponse(t, response, http.StatusBadRequest, "An error ocurred while creating access token")
 	})
 }
