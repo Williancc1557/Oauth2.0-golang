@@ -47,15 +47,6 @@ func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequ
 	}
 }
 
-func verifyHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expectedStatusCode int, expectedError string) {
-	require.Equal(t, httpResponse.StatusCode, expectedStatusCode)
-
-	var responseBody protocols.ErrorResponse
-	err := json.NewDecoder(httpResponse.Body).Decode(&responseBody)
-	require.NoError(t, err)
-	require.Equal(t, responseBody.Error, expectedError)
-}
-
 func TestSignInController(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		signInController, mockEncrypter, mockGetAccountByEmail, mockResetRefreshToken, ctrl := setupMocks(t)

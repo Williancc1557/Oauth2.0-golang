@@ -34,14 +34,14 @@ func (c *RefreshTokenController) Handle(r presentationProtocols.HttpRequest) *pr
 	if err != nil {
 		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "An invalid refresh token was provided",
-		}, http.StatusUnprocessableEntity)
+		}, http.StatusBadRequest)
 	}
 
 	accessTokenData, err := c.CreateAccessToken.Create(account.Id)
 	if err != nil {
 		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "An error ocurred while creating access token",
-		}, http.StatusUnprocessableEntity)
+		}, http.StatusBadRequest)
 	}
 
 	return helpers.CreateResponse(&RefreshTokenControllerResponse{

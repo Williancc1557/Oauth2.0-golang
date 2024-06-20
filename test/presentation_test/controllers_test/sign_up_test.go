@@ -48,15 +48,6 @@ func createSignUpHttpRequest(t *testing.T, email, password string) *protocols.Ht
 	}
 }
 
-func verifySignUpHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expectedStatusCode int, expectedError string) {
-	require.Equal(t, httpResponse.StatusCode, expectedStatusCode)
-
-	var responseBody protocols.ErrorResponse
-	err := json.NewDecoder(httpResponse.Body).Decode(&responseBody)
-	require.NoError(t, err)
-	require.Equal(t, responseBody.Error, expectedError)
-}
-
 func convertReadCloserToStruct(reader io.ReadCloser, v interface{}) error {
 	defer reader.Close()
 
@@ -124,7 +115,7 @@ func TestSignUpController(t *testing.T) {
 
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifySignUpHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid body request")
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid body request")
 	})
 
 	t.Run("InvalidValidationEmailError", func(t *testing.T) {
@@ -134,7 +125,7 @@ func TestSignUpController(t *testing.T) {
 		httpRequest := createSignUpHttpRequest(t, "invalid_email", password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifySignUpHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
+		verifyHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
 	})
 
 	t.Run("InvalidValidationPasswordError", func(t *testing.T) {
@@ -146,8 +137,8 @@ func TestSignUpController(t *testing.T) {
 		httpResponseMin := signUpController.Handle(*httpMinPasswordRequest)
 		httpResponseMax := signUpController.Handle(*httpMaxPasswordRequest)
 
-		verifySignUpHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
-		verifySignUpHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
+		verifyHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
+		verifyHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
 	})
 
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
@@ -159,7 +150,7 @@ func TestSignUpController(t *testing.T) {
 		httpRequest := createSignUpHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifySignUpHttpResponse(t, httpResponse, http.StatusConflict, "User already exists")
+		verifyHttpResponse(t, httpResponse, http.StatusConflict, "User already exists")
 	})
 
 	t.Run("ErrorWhileAddAccount", func(t *testing.T) {
@@ -176,7 +167,7 @@ func TestSignUpController(t *testing.T) {
 		httpRequest := createSignUpHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifySignUpHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while adding account")
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while adding account")
 	})
 
 	t.Run("ErrorWhileCreateAccess", func(t *testing.T) {
@@ -200,6 +191,6 @@ func TestSignUpController(t *testing.T) {
 		httpRequest := createSignUpHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifySignUpHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while creating access token")
+		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while creating access token")
 	})
 }

@@ -3,6 +3,7 @@ package controllers_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"testing"
@@ -73,6 +74,18 @@ func TestRefreshTokenController(t *testing.T) {
 			ExpiresIn:   accessTokenData.ExpiresIn,
 		}
 		require.Equal(t, &responseBody, correctResponse)
+	})
+
+	t.Run("ErrorGetAccountByRefreshToken", func(t *testing.T) {
+		sut, getAccountByRefreshToken, _, ctrl := setupRefreshTokenMocks(t)
+		defer ctrl.Finish()
+
+		getAccountByRefreshToken.EXPECT().Get(refreshToken).Return(nil, errors.New("fake-error"))
+
+		requestData := CreateHttpRequest(t)
+		response := sut.Handle(requestData)
+
+		require.Equal(t, response.StatusCode, http.StatusBadRequest)
 
 	})
 }
