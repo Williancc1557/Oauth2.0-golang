@@ -9,5 +9,5 @@ import (
 )
 
 func SignInRouter(server *http.ServeMux, db *sql.DB) {
-	server.HandleFunc("POST /auth/sign-in", adapters.AdaptRoute(factory.MakeSignInController(db)))
+	server.HandleFunc("POST /api/auth/sign-in", adapters.AdaptRoute(factory.MakeSignInController(db)))
 }
