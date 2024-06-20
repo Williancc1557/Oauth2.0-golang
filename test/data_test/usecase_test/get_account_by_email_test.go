@@ -15,9 +15,7 @@ func setupMocks(t *testing.T) (*usecase.DbGetAccountByEmail, *mocks.MockGetAccou
 	ctrl := gomock.NewController(t)
 	mockGetAccountByEmailRepository := mocks.NewMockGetAccountByEmailRepository(ctrl)
 
-	dbGetAccountByEmail := &usecase.DbGetAccountByEmail{
-		GetAccountByEmailRepository: mockGetAccountByEmailRepository,
-	}
+	dbGetAccountByEmail := usecase.NewGetAccountByEmail(mockGetAccountByEmailRepository)
 
 	return dbGetAccountByEmail, mockGetAccountByEmailRepository, ctrl
 }

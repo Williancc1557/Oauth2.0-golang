@@ -13,7 +13,7 @@ func setupMocksForGetAccountByEmail(t *testing.T) (*usecase.DbResetRefreshToken,
 	ctrl := gomock.NewController(t)
 	mockResetRefreshToken := mocks.NewMockResetRefreshToken(ctrl)
 
-	return &usecase.DbResetRefreshToken{ResetRefreshTokenRepository: mockResetRefreshToken}, mockResetRefreshToken, ctrl
+	return usecase.NewDbResetRefreshToken(mockResetRefreshToken), mockResetRefreshToken, ctrl
 }
 
 func TestDbResetRefreshToken(t *testing.T) {

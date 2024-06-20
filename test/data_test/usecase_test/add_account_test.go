@@ -16,9 +16,7 @@ func setupAddAccountMocks(t *testing.T) (*usecase.DbAddAccount, *mocks.MockAddAc
 	ctrl := gomock.NewController(t)
 	mockAddAccountRepository := mocks.NewMockAddAccountRepository(ctrl)
 
-	dbAddAccount := &usecase.DbAddAccount{
-		AddAccountRepository: mockAddAccountRepository,
-	}
+	dbAddAccount := usecase.NewDbAddAccount(mockAddAccountRepository)
 
 	return dbAddAccount, mockAddAccountRepository, ctrl
 }
