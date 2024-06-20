@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/Williancc1557/Oauth2.0-golang/internal/data/usecase"
@@ -22,7 +23,7 @@ func setupGetAccountByRefreshTokenMocks(t *testing.T) (*usecase.DbGetAccountByRe
 func TestDbGetAccountByRefreshToken(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		sut, getAccountByRefreshTokenRepository, ctrl := setupGetAccountByRefreshTokenMocks(t)
-		ctrl.Finish()
+		defer ctrl.Finish()
 
 		account := &models.AccountModel{
 			Id:           userId,
@@ -31,11 +32,23 @@ func TestDbGetAccountByRefreshToken(t *testing.T) {
 			RefreshToken: refreshToken,
 		}
 
-		getAccountByRefreshTokenRepository.EXPECT().Get("fake-refresh-token").Return(account, nil)
+		getAccountByRefreshTokenRepository.EXPECT().Get(refreshToken).Return(account, nil)
 
-		account, err := sut.GetAccountByRefreshTokenRepository.Get(refreshToken)
+		account, err := sut.Get(refreshToken)
 
 		require.NoError(t, err)
 		require.NotNil(t, account)
+	})
+
+	t.Run("ErrorGetAccountByRefreshToken", func(t *testing.T) {
+		sut, getAccountByRefreshTokenRepository, ctrl := setupGetAccountByRefreshTokenMocks(t)
+		defer ctrl.Finish()
+
+		getAccountByRefreshTokenRepository.EXPECT().Get(refreshToken).Return(nil, errors.New("fake-error"))
+
+		account, err := sut.Get(refreshToken)
+
+		require.Error(t, err)
+		require.Nil(t, account)
 	})
 }
