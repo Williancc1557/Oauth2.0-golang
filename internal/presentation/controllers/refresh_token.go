@@ -9,8 +9,8 @@ import (
 )
 
 type RefreshTokenController struct {
-	GetUserByRefreshToken usecase.GetUserByRefreshToken
-	CreateAccessToken     usecase.CreateAccessToken
+	GetAccountByRefreshToken usecase.GetAccountByRefreshToken
+	CreateAccessToken        usecase.CreateAccessToken
 }
 
 type RefreshTokenControllerOutput struct {
@@ -19,10 +19,10 @@ type RefreshTokenControllerOutput struct {
 }
 
 func NewRefreshTokenController(
-	GetUserByRefreshToken usecase.GetUserByRefreshToken,
+	GetAccountByRefreshToken usecase.GetAccountByRefreshToken,
 	CreateAccessToken usecase.CreateAccessToken) *RefreshTokenController {
 	return &RefreshTokenController{
-		GetUserByRefreshToken,
+		GetAccountByRefreshToken,
 		CreateAccessToken,
 	}
 }
@@ -30,7 +30,7 @@ func NewRefreshTokenController(
 func (c *RefreshTokenController) Handle(r presentationProtocols.HttpRequest) *presentationProtocols.HttpResponse {
 	refreshToken := r.Header.Get("refreshtoken")
 
-	account, err := c.GetUserByRefreshToken.Get(refreshToken)
+	account, err := c.GetAccountByRefreshToken.Get(refreshToken)
 	if err != nil {
 		return helpers.CreateResponse(&presentationProtocols.ErrorResponse{
 			Error: "An invalid refresh token was provided",
