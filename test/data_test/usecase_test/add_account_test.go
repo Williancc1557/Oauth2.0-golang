@@ -21,11 +21,6 @@ func setupAddAccountMocks(t *testing.T) (*usecase.DbAddAccount, *mocks.MockAddAc
 	return dbAddAccount, mockAddAccountRepository, ctrl
 }
 
-const (
-	email    = "fake-email@example.com"
-	password = "fake-password"
-)
-
 func TestAddAccountTest(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		dbAddAccount, mockAddAccountRepository, ctrl := setupAddAccountMocks(t)
