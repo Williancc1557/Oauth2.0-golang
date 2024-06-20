@@ -18,12 +18,6 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-const (
-	email        = "test@example.com"
-	password     = "testpassword"
-	refreshToken = "fake-refresh-token"
-)
-
 func setupMocks(t *testing.T) (*controllers.SignInController, *mocks.MockEncrypter, *mocks.MockGetAccountByEmail, *mocks.MockResetRefreshToken, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockEncrypter := mocks.NewMockEncrypter(ctrl)

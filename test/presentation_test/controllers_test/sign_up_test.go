@@ -1,4 +1,4 @@
-package controllers
+package controllers_test
 
 import (
 	"bytes"
@@ -17,13 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	email    = "test@example.com"
-	password = "testpassword"
-	userId   = "fake-id"
-)
+const ()
 
-func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAccountByEmail, *mocks.MockAddAccount, *mocks.MockCreateAccessToken, *gomock.Controller) {
+func setupSignUpMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAccountByEmail, *mocks.MockAddAccount, *mocks.MockCreateAccessToken, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockGetAccountByEmail := mocks.NewMockGetAccountByEmail(ctrl)
 	mockAddAccount := mocks.NewMockAddAccount(ctrl)
@@ -38,7 +34,7 @@ func setupMocks(t *testing.T) (*controllers.SignUpController, *mocks.MockGetAcco
 	return signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl
 }
 
-func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequest {
+func createSignUpHttpRequest(t *testing.T, email, password string) *protocols.HttpRequest {
 	var requestBody bytes.Buffer
 	err := json.NewEncoder(&requestBody).Encode(&controllers.SignUpControllerBody{
 		Email:    email,
@@ -52,7 +48,7 @@ func createHttpRequest(t *testing.T, email, password string) *protocols.HttpRequ
 	}
 }
 
-func verifyHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expectedStatusCode int, expectedError string) {
+func verifySignUpHttpResponse(t *testing.T, httpResponse *protocols.HttpResponse, expectedStatusCode int, expectedError string) {
 	require.Equal(t, httpResponse.StatusCode, expectedStatusCode)
 
 	var responseBody protocols.ErrorResponse
@@ -79,7 +75,7 @@ func convertReadCloserToStruct(reader io.ReadCloser, v interface{}) error {
 
 func TestSignUpController(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl := setupSignUpMocks(t)
 		defer ctrl.Finish()
 
 		signUpControllerInput := &usecase.AddAccountInput{
@@ -100,7 +96,7 @@ func TestSignUpController(t *testing.T) {
 		mockAddAccount.EXPECT().Add(signUpControllerInput).Return(AddAccountOutput, nil)
 		createAccessToken.EXPECT().Create(userId).Return(CreateAccessTokenOutput, nil)
 
-		httpRequest := createHttpRequest(t, email, password)
+		httpRequest := createSignUpHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
 		require.Equal(t, httpResponse.StatusCode, http.StatusOK)
@@ -118,7 +114,7 @@ func TestSignUpController(t *testing.T) {
 	})
 
 	t.Run("InvalidBodyRequest", func(t *testing.T) {
-		signUpController, _, _, _, ctrl := setupMocks(t)
+		signUpController, _, _, _, ctrl := setupSignUpMocks(t)
 		defer ctrl.Finish()
 
 		httpRequest := &protocols.HttpRequest{
@@ -128,46 +124,46 @@ func TestSignUpController(t *testing.T) {
 
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid body request")
+		verifySignUpHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid body request")
 	})
 
 	t.Run("InvalidValidationEmailError", func(t *testing.T) {
-		signUpController, _, _, _, ctrl := setupMocks(t)
+		signUpController, _, _, _, ctrl := setupSignUpMocks(t)
 		defer ctrl.Finish()
 
-		httpRequest := createHttpRequest(t, "invalid_email", password)
+		httpRequest := createSignUpHttpRequest(t, "invalid_email", password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifyHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
+		verifySignUpHttpResponse(t, httpResponse, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Email' Error:Field validation for 'Email' failed on the 'email' tag")
 	})
 
 	t.Run("InvalidValidationPasswordError", func(t *testing.T) {
-		signUpController, _, _, _, ctrl := setupMocks(t)
+		signUpController, _, _, _, ctrl := setupSignUpMocks(t)
 		defer ctrl.Finish()
 
-		httpMinPasswordRequest := createHttpRequest(t, email, "invalid")
-		httpMaxPasswordRequest := createHttpRequest(t, email, strings.Repeat("invalid_password", 80))
+		httpMinPasswordRequest := createSignUpHttpRequest(t, email, "invalid")
+		httpMaxPasswordRequest := createSignUpHttpRequest(t, email, strings.Repeat("invalid_password", 80))
 		httpResponseMin := signUpController.Handle(*httpMinPasswordRequest)
 		httpResponseMax := signUpController.Handle(*httpMaxPasswordRequest)
 
-		verifyHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
-		verifyHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
+		verifySignUpHttpResponse(t, httpResponseMin, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'min' tag")
+		verifySignUpHttpResponse(t, httpResponseMax, http.StatusUnprocessableEntity, "Key: 'SignUpControllerBody.Password' Error:Field validation for 'Password' failed on the 'max' tag")
 	})
 
 	t.Run("InvalidEmailCredentials", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, _, _, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, _, _, ctrl := setupSignUpMocks(t)
 		defer ctrl.Finish()
 
 		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, nil)
 
-		httpRequest := createHttpRequest(t, email, password)
+		httpRequest := createSignUpHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifyHttpResponse(t, httpResponse, http.StatusConflict, "User already exists")
+		verifySignUpHttpResponse(t, httpResponse, http.StatusConflict, "User already exists")
 	})
 
 	t.Run("ErrorWhileAddAccount", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, mockAddAccount, _, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, mockAddAccount, _, ctrl := setupSignUpMocks(t)
 		defer ctrl.Finish()
 
 		signUpControllerInput := &usecase.AddAccountInput{
@@ -177,14 +173,14 @@ func TestSignUpController(t *testing.T) {
 		mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
 		mockAddAccount.EXPECT().Add(signUpControllerInput).Return(nil, errors.New("fake-error"))
 
-		httpRequest := createHttpRequest(t, email, password)
+		httpRequest := createSignUpHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while adding account")
+		verifySignUpHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while adding account")
 	})
 
 	t.Run("ErrorWhileCreateAccess", func(t *testing.T) {
-		signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl := setupMocks(t)
+		signUpController, mockGetAccountByEmail, mockAddAccount, createAccessToken, ctrl := setupSignUpMocks(t)
 		defer ctrl.Finish()
 
 		signUpControllerInput := &usecase.AddAccountInput{
@@ -201,9 +197,9 @@ func TestSignUpController(t *testing.T) {
 		mockAddAccount.EXPECT().Add(signUpControllerInput).Return(AddAccountOutput, nil)
 		createAccessToken.EXPECT().Create(userId).Return(nil, errors.New("fake-error"))
 
-		httpRequest := createHttpRequest(t, email, password)
+		httpRequest := createSignUpHttpRequest(t, email, password)
 		httpResponse := signUpController.Handle(*httpRequest)
 
-		verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while creating access token")
+		verifySignUpHttpResponse(t, httpResponse, http.StatusBadRequest, "An error ocurred while creating access token")
 	})
 }

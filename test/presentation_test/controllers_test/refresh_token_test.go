@@ -45,9 +45,9 @@ func TestRefreshTokenController(t *testing.T) {
 		defer ctrl.Finish()
 
 		account := &models.AccountModel{
-			Id:           "fake-account-id",
-			Email:        "fake-account-email@example.com",
-			Password:     "fake-account-password",
+			Id:           userId,
+			Email:        email,
+			Password:     password,
 			RefreshToken: refreshToken,
 		}
 
@@ -56,8 +56,8 @@ func TestRefreshTokenController(t *testing.T) {
 			ExpiresIn:   123,
 		}
 
-		getAccountByRefreshToken.EXPECT().Get("fake-refresh-token").Return(account, nil)
-		createAccessToken.EXPECT().Create("fake-account-id").Return(accessTokenData, nil)
+		getAccountByRefreshToken.EXPECT().Get(refreshToken).Return(account, nil)
+		createAccessToken.EXPECT().Create(userId).Return(accessTokenData, nil)
 
 		requestData := CreateHttpRequest(t)
 		response := sut.Handle(requestData)
