@@ -9,4 +9,5 @@ import (
 
 func SetupRoutes(server *http.ServeMux, db *sql.DB) {
 	routes.SignInRouter(server, db)
+	routes.SignUpRouter(server, db)
 }

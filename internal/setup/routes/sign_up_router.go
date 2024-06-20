@@ -8,6 +8,6 @@ import (
 	"github.com/Williancc1557/Oauth2.0-golang/internal/setup/factory"
 )
 
-func SignInRouter(server *http.ServeMux, db *sql.DB) {
-	server.HandleFunc("POST /auth/sign-in", adapters.AdaptRoute(factory.MakeSignInController(db)))
+func SignUpRouter(server *http.ServeMux, db *sql.DB) {
+	server.HandleFunc("POST /auth/sign-up", adapters.AdaptRoute(factory.MakeSignUpController(db)))
 }

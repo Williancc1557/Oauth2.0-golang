@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data # connect with linux: sudo psql postgres://myuser:mypassword@localhost:5432/mydatabase
 
 volumes:
   db_data:
