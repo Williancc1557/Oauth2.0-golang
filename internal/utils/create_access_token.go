@@ -1,20 +1,17 @@
 package utils
 
 import (
+	"os"
 	"time"
 
 	"github.com/Williancc1557/Oauth2.0-golang/internal/domain/usecase"
 	"github.com/golang-jwt/jwt"
 )
 
-type CreateAccessTokenUtil struct {
-	privateKey string
-}
+type CreateAccessTokenUtil struct{}
 
-func NewCreateAccessTokenUtil(privateKey string) *CreateAccessTokenUtil {
-	return &CreateAccessTokenUtil{
-		privateKey: privateKey,
-	}
+func NewCreateAccessTokenUtil() *CreateAccessTokenUtil {
+	return &CreateAccessTokenUtil{}
 }
 
 func (b *CreateAccessTokenUtil) Create(userId string) (*usecase.CreateAccessTokenOutput, error) {
@@ -26,7 +23,7 @@ func (b *CreateAccessTokenUtil) Create(userId string) (*usecase.CreateAccessToke
 	claims["authorized"] = true
 	claims["sub"] = userId
 
-	tokenString, err := token.SignedString([]byte(b.privateKey))
+	tokenString, err := token.SignedString([]byte(os.Getenv("TOKEN_SECRET")))
 	if err != nil {
 		return nil, err
 	}

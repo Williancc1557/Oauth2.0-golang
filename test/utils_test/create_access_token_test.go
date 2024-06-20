@@ -8,7 +8,7 @@ import (
 )
 
 func SetupMocks(t *testing.T) *utils.CreateAccessTokenUtil {
-	createAccessTokenUtil := utils.NewCreateAccessTokenUtil("fake-private-key")
+	createAccessTokenUtil := utils.NewCreateAccessTokenUtil()
 
 	return createAccessTokenUtil
 }
