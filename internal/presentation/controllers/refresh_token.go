@@ -18,8 +18,13 @@ type RefreshTokenControllerOutput struct {
 	AccessToken string `json:"accessToken"`
 }
 
-func NewRefreshTokenController() *RefreshTokenController {
-	return &RefreshTokenController{}
+func NewRefreshTokenController(
+	GetUserByRefreshToken usecase.GetUserByRefreshToken,
+	CreateAccessToken usecase.CreateAccessToken) *RefreshTokenController {
+	return &RefreshTokenController{
+		GetUserByRefreshToken,
+		CreateAccessToken,
+	}
 }
 
 func (c *RefreshTokenController) Handle(r presentationProtocols.HttpRequest) *presentationProtocols.HttpResponse {
