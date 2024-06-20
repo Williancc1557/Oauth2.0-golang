@@ -13,7 +13,7 @@ type RefreshTokenController struct {
 	CreateAccessToken        usecase.CreateAccessToken
 }
 
-type RefreshTokenControllerOutput struct {
+type RefreshTokenControllerResponse struct {
 	ExpiresIn   int    `json:"expiresIn"`
 	AccessToken string `json:"accessToken"`
 }
@@ -44,7 +44,7 @@ func (c *RefreshTokenController) Handle(r presentationProtocols.HttpRequest) *pr
 		}, http.StatusUnprocessableEntity)
 	}
 
-	return helpers.CreateResponse(&RefreshTokenControllerOutput{
+	return helpers.CreateResponse(&RefreshTokenControllerResponse{
 		ExpiresIn:   accessTokenData.ExpiresIn,
 		AccessToken: accessTokenData.AccessToken,
 	}, http.StatusOK)
