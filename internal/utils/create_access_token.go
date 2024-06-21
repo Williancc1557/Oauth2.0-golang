@@ -18,7 +18,7 @@ func (b *CreateAccessTokenUtil) Create(userId string) (*usecase.CreateAccessToke
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
-	expiresIn := time.Now().Add(10 * time.Minute)
+	expiresIn := time.Now().Add(time.Minute * 5).Unix()
 	claims["exp"] = expiresIn
 	claims["authorized"] = true
 	claims["sub"] = userId
@@ -30,6 +30,6 @@ func (b *CreateAccessTokenUtil) Create(userId string) (*usecase.CreateAccessToke
 
 	return &usecase.CreateAccessTokenOutput{
 		AccessToken: tokenString,
-		ExpiresIn:   expiresIn.Second(),
+		ExpiresIn:   int(expiresIn),
 	}, nil
 }
