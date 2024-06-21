@@ -90,101 +90,84 @@ This API needs some additional information to be able to turn on there are three
 To be able to set variables, create a file named `.env` outside `src`, I'll demonstrate a variable below for example:
 
 ```env
-    POSTGRE_URL=postgres://myuser:mypassword@localhost:5432/mydatabase?
-    TOKEN_SECRET=tokenSecretExample
-    PORT=1234
+  POSTGRE_URL=postgres://myuser:mypassword@localhost:5432/mydatabase?
+  TOKEN_SECRET=tokenSecretExample
+  PORT=1234
 ```
 
-### Variáveis:
+## Tests with testing
 
-- `MONGO_URL`: Serve para você setar o url do seu mongodb caso exista, caso não ele vai criar um automaticamente na sua máquina. Para isso baixe o mongodb no seu computador.
+In this application I tried to cover all important parts of code with unit tests, like controllers, repositories, utils, and data. I did it because to refactor the code will be a simple task and will guarantee more security and efficiency when the developer change the code without fear of change the business rule.
 
-- `PORT`: A porta que a API vai utilizar
+To mock dependencies I used the following libraries:
 
-- `SECRET_JWT`: O secret que a API vai utilizar para criar o access-token
+- github.com/DATA-DOG/go-sqlmock
+- github.com/golang/mock
 
-## Testes com jest
+The first library I used to mock sql queries and put an fake result for theses queries as you can see in the code below:
 
-Nessa aplicação deixei o máximo coberto de testes possível, para que seja possível realizar mudanças sem se preocupar em que algo tenha sido mudado, realizado alguma mudança inesperada. Para isso utilizei o `jest`, ótima ferramenta para testar partes de código, como essa aplicação é feita a partir do clean archtecture, então existem lugares que contém dependências. Para conseguir testar algo que exige dependências utilizamos o sistema de mockar do jest.
+```go
+t.Run("Success", func(t *testing.T) {
+  repo, mock, db := setupMocks(t)
+  defer db.Close()
 
-Para mockar, o jest lhe proporciona algumas ferramentas, entre elas, existe o spyOn, que foi o que utilizei para mockar nessa API. E também utilizei os stubs, que são tipo umas dependências falsas, e nessas dependências falsas, é possível dar os parâmetros e o retorno.
+  email := "test@example.com"
+  query := regexp.QuoteMeta("SELECT * FROM users WHERE email = $1")
 
-Podemos utilizar o spyOn para espionar os métodos desses stubs, ou seja, ver a quantidade de vezes que esse método do stub foi chamado, o que entro de parâmetro nesse método, ou até mesmo setar o retorno desse método, e entre mais funcionalidades. Com isso você consegue testar todas as depêndencias, olhando o que entra nela como parâmetro, para onde ela está indo, retorno, se ela dar erro para onde ela vai, e etc. Observe o exemplo de teste a seguir:
+  rows := sqlmock.NewRows([]string{"id", "email", "password", "refresh_token"}).
+    AddRow(1, email, "fake_hashed_password", "fake_refresh_token")
 
-```ts
-/**
- * Vamos criar essa classe que recebe uma dependência que pelo nome vai
- * fazer algum parágrafo para utilizarmos.
- * */
-class TestDependency {
-  public constructor(private readonly makeParagraph: MakeParagraph) {}
-  public paragraph(name: string): string {
-    const paragraph = this.makeParagraph.make(name);
+  mock.ExpectQuery(query).WithArgs(email).WillReturnRows(rows)
 
-    return paragraph;
-  }
-}
-
-/* teste-dependency.spec.ts (arquivo para testar a classe acima) */
-
-test("should Teste.paragraph is called with valid param", () => {
-  // Aqui eu criei o stub (fake dependência)
-  class makeParagraphStub {
-    public make(name: string): string {
-      return `hello ${name}`;
-    }
-  }
-
-  // aqui eu passei o nosso stub como uma fake dependência
-  const sut = new TestDependency(makeParagraphStub);
-
-  // aqui eu pego a dependência espionada para utiliza-la depois
-  const makeParagraphSpy = jest.spyOn(makeParagraphStub);
-
-  // aqui eu executo a nossa classe
-  sut.paragraph("willian");
-
-  // aqui eu verifico se a dependência foi chamada com o parâmetro correto
-  expect(makeParagraphSpy).toHaveBeenCalledWith("willian");
-});
+  account, err := repo.Get(email)
+  require.NoError(t, err)
+  require.NotNil(t, account)
+  require.Equal(t, email, account.Email)
+})
 ```
 
-E foi assim que fui testando cada classe dessa API.
+And the next library `golang/mock` is used to mock interfaces, these interfaces are used as dependencies of the controller, data, and repositories. See below a simple example of mocking a dependency:
 
-### Comandos
+```go
+t.Run("InvalidEmailCredentials", func(t *testing.T) {
+  signInController, _, mockGetAccountByEmail, _, ctrl := setupMocks(t)
+  defer ctrl.Finish()
 
-- `make test`: Esse comando irá executar todos os testes, mas não irá amostrar as logs;
+  mockGetAccountByEmail.EXPECT().Get(email).Return(nil, errors.New("fake-error"))
 
-- `make coverage`: Esse comando irá executar todos os testes unitários com o `.spec.ts` no nome do arquivo e não vai amostrar as logs também;
+  httpRequest := createHttpRequest(t, email, password)
+  httpResponse := signInController.Handle(*httpRequest)
 
-## Camadas do sistema
+  verifyHttpResponse(t, httpResponse, http.StatusBadRequest, "invalid credentials")
+})
+```
 
-É possível visualizar dentro do `src` as camadas dessa API, vou listar elas aqui e explicar qual a função de cada uma.
+In this case, the fake dependency will be `mockGetAccountByEmail`, as you can see, while I'm returning an error, if the email is not the same as the passed, an error will occur in the test.
 
-- `data`: Aqui é a camada em que vai ter as dependências que vão se comunicar com o infra, onde fica a infraestrutura da aplicação;
+### Commands
 
-- `decorators`: Camada no qual tem alguns design patterns que utilizo ao longo da API;
+These are the commands you can use to run tests, or make a coverage of them.
 
-- `domain`: É o core dessa API onde fica as principais interfaces utilizadas na aplicação;
+- `make test`: This command will execute all tests in the `tests` file;
 
-- `infra`: Serve para se comunicar com o banco de dados e pegar dados e enviar dados;
+- `make coverage`: This test will generate a coverage of some specifics parts of the code, these important parts are: controllers, data, infra, utils.
 
-- `main`: Aqui serve para integrar a API com algum framework como o express utilizado nessa API;
+## System Layers
 
-- `presentation`: Já nessa camada crio os controllers e as suas dependências em formato de interface;
+We can also see a lot of layers that I created to maintain a good code separation and their responsibilities. Below I will talk about the most important layers used in this API.
 
-- `utils`: Nessa camada, coloco classes, métodos, ou outra coisas que sei que serão utilizados constatemente ao longo da API.
+- `data`: This layer was created to communicate the controller and repositories, but not directly;
 
-E foi assim que fui montando cada rota dessa API, utilizando essas camadas listadas acima.
+- `domain`: This layer is the core of business rules, all dependencies used by controllers are declared here as an interface;
 
-## Lefthook
+- `infra`: Is used to communicate with the database using repositories methods;
 
-Essa tecnologia utilizei para evitar mandar commits com algum teste falhando. Como ela funciona? Nele eu posso setar algum comando para ser executado quando alguém da o comando do commit ele vai executar esse tal comando. Se esse comando der erro, o commit vai falhar. Se eu colocar por exemplo o comando `yarn test` no lefthook ele vai executar o comando para realizar todos os tests antes de commitar algo, se caso algum teste falhar, o commit não será realizado.
+- `presentation`: This layer is used to create the controllers of the application;
 
-A configuração do lefthook está localizada no arquivo `.lefthook.yml`.
+- `utils`: I used this layer to put dependencies that I can use in all layers of my project.
 
-# Tarefas
+# Tasks
 
-## Criação da verificação de email
+## Creation of email validation
 
-[ ] - Criar qualquer token e colocar ao menos 5 minutos de tempo de duração, e então criar uma rota para validar esse token e verificar a conta do usuário.
+[ ] - Create any token and set it to last at least 5 minutes, then create a route to validate this token and verify the user's account.
