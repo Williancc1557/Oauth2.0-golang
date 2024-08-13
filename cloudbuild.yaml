@@ -14,7 +14,7 @@ steps:
       [
         "build",
         "-t",
-        "us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
+        "southamerica-east1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
         ".",
       ]
 
@@ -23,7 +23,7 @@ steps:
     args:
       [
         "push",
-        "us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
+        "southamerica-east1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
       ]
 
   # Deploy to Cloud Run
@@ -33,9 +33,9 @@ steps:
         "run",
         "deploy",
         "helloworld-${SHORT_SHA}",
-        "--image=us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
+        "--image=southamerica-east1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
         "--region",
-        "us-central1",
+        "southamerica-east1",
         "--platform",
         "managed",
       ]
@@ -48,7 +48,4 @@ artifacts:
       - ${SHORT_SHA}_test_log.xml
 # Store images in Google Artifact Registry
 images:
-  - us-central1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA
-
-options:
-  logging: CLOUD_LOGGING_ONLY
+  - southamerica-east1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA
