@@ -14,7 +14,7 @@ steps:
       [
         "build",
         "-t",
-        "northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
+        "southamerica-east1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
         ".",
       ]
 
@@ -23,7 +23,7 @@ steps:
     args:
       [
         "push",
-        "northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
+        "southamerica-east1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
       ]
 
   # Deploy to Cloud Run
@@ -33,22 +33,12 @@ steps:
         "run",
         "deploy",
         "helloworld-${SHORT_SHA}",
-        "--image=northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
+        "--image=southamerica-east1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA",
         "--region",
-        "northamerica-northeast1",
+        "southamerica-east1",
         "--platform",
         "managed",
       ]
-
-# Save test logs to Google Cloud Storage
-artifacts:
-  objects:
-    location: gs://$_BUCKET_NAME/
-    paths:
-      - ${SHORT_SHA}_test_log.xml
-# Store images in Google Artifact Registry
-images:
-  - northamerica-northeast1-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/myimage:$SHORT_SHA
 
 options:
   logging: CLOUD_LOGGING_ONLY
