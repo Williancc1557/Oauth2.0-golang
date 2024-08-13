@@ -14,8 +14,11 @@ import (
 )
 
 func main() {
-	port := ":8080"
 	config.LoadEnvFile(".env")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
 	log.Println("server is running with port", port)
 
