@@ -23,7 +23,7 @@ func main() {
 	log.Println("server is running with port", port)
 
 	sm := http.Server{
-		Addr:         port,
+		Addr:         ":" + port,
 		Handler:      setup.Server(),
 		IdleTimeout:  60 * time.Second,
 		ReadTimeout:  1 * time.Second,
